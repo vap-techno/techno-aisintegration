@@ -19,12 +19,14 @@ namespace BL.Core
 {
     public class Manager 
     {
+        //TODO: Во всех методах убрать создание экземпляра репозитория, вынести их в Fields
+        
         #region Fields
 
         private OpcService _opcService;
         private TaskMapper _taskMapper;
         private readonly ILogger _logger;
-        
+
         #endregion
 
         #region Properties
@@ -44,13 +46,24 @@ namespace BL.Core
 
         #region Constructors
 
-        public Manager(ManagerOptions option, ILogger logger)
+        public Manager(string dbConString, TaskMapper mapper, OpcService opcService,  ILogger logger)
         {
-            OpcServerUri = option.OpcServerUri;
-            DbConString = option.DbConString;
+            DbConString = dbConString;
             _logger = logger;
+            _opcService = opcService;
+            _taskMapper = mapper;
+
+            // Инициализация
+            try
+            {
+                Init();
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Не инициализируется менедежер. {e}", e);
+                throw;
+            }
             
-            Init();
         }
 
         #endregion ctor
@@ -58,20 +71,13 @@ namespace BL.Core
         private void Init()
         {
 
-            // TODO: Реализовать как DI
-
-            // Создаем доступ к OPC
-            _opcService = new OpcService(OpcServerUri, _logger);
-
             // Подписываемся на события
             _opcService.ValueChanged += OpcService_ValueChanged;
             _opcService.MonitoringCanceled += OpcService_MonitoringCanceled;
 
             // Запускаем мониторинг
             _opcService.RunCmdMonitoring();
-
-            // Создаем task mapper
-            _taskMapper = new TaskMapper();
+            
         }
 
         private void OpcService_MonitoringCanceled(object sender, EventArgs e)
@@ -81,11 +87,9 @@ namespace BL.Core
 
         private void OpcService_ValueChanged(object sender, TagEventArgs<string> e)
         {
-
-
-            
+    
             // Преобразуем JSON-строку в список заявок формата DTO
-            List<IRequestDto> cmdDtoList = AisJConverter.Deserialize(e.Tag.Value);
+            List<IRequestDto> cmdDtoList = AisJConverter.Deserialize(e.Tag.Value, _logger);
 
             if (cmdDtoList != null)
             {
@@ -160,7 +164,7 @@ namespace BL.Core
             var task = Mapper.Map<FillInTask>(dto); ;
 
             // Ищем по идентификатору в базе данных
-            var rep = new FIllInTaskRepository(DbConString);
+            var rep = new FIllInTaskRepository(DbConString, _logger);
             var foundedTask = rep.GetItem(task.AisTaskId);
 
             // Если запись существует - пишем в лог сообщение
@@ -193,7 +197,7 @@ namespace BL.Core
             var task = Mapper.Map<FillInMcTask>(dto);
 
             // Ищем по идентификатору в базе данных
-            var rep = new FIllInMcTaskRepository(DbConString);
+            var rep = new FIllInMcTaskRepository(DbConString, _logger);
             var foundedTask = rep.GetItem(task.AisTaskId);
 
             // Если запись существует - пишем в лог сообщение
@@ -224,7 +228,7 @@ namespace BL.Core
             var task = Mapper.Map<FillOutTask>(dto);
 
             // Ищем по идентификатору в базе данных
-            var rep = new FIllOutTaskRepository(DbConString);
+            var rep = new FIllOutTaskRepository(DbConString, _logger);
             var foundedTask = rep.GetItem(task.AisTaskId);
 
             // Если запись существует - пишем в лог сообщение
@@ -257,7 +261,7 @@ namespace BL.Core
             var task = Mapper.Map<CancelTask>(dto);
 
             // Записываем в БД
-            var rep = new CancelTaskRepository(DbConString);
+            var rep = new CancelTaskRepository(DbConString, _logger);
 
             var res = rep.Create(task);
             if (res > 0)
@@ -329,7 +333,7 @@ namespace BL.Core
             var task = Mapper.Map<StatusTask>(dto);
 
             // Записываем в БД
-            var rep = new StatusTaskRepository(DbConString);
+            var rep = new StatusTaskRepository(DbConString, _logger);
 
             var res = rep.Create(task);
             if (res > 0)
@@ -394,7 +398,7 @@ namespace BL.Core
 
         private StatusResponse StatusTaskFillIn(string aisId)
         {
-            FIllInTaskRepository rep = new FIllInTaskRepository(DbConString);
+            FIllInTaskRepository rep = new FIllInTaskRepository(DbConString, _logger);
             StatusResponse response = null;
 
             // Ищем заявку в таблице FillInTask
@@ -419,7 +423,7 @@ namespace BL.Core
 
         private StatusResponse StatusTaskFillInMc(string aisId)
         {
-            FIllInMcTaskRepository rep = new FIllInMcTaskRepository(DbConString);
+            FIllInMcTaskRepository rep = new FIllInMcTaskRepository(DbConString, _logger);
             StatusResponse response = null;
 
             // Ищем заявку в таблице FillInMcTask
@@ -444,7 +448,7 @@ namespace BL.Core
 
         private StatusResponse StatusTaskFillOut(string aisId)
         {
-            FIllOutTaskRepository rep = new FIllOutTaskRepository(DbConString);
+            FIllOutTaskRepository rep = new FIllOutTaskRepository(DbConString, _logger);
             StatusResponse response = null;
 
             // Ищем заявку в таблице FillOutTask
@@ -479,7 +483,7 @@ namespace BL.Core
         /// <returns></returns>
         private CancelResponse CancelTaskInFillIn(string aisId)
         {
-            FIllInTaskRepository rep = new FIllInTaskRepository(DbConString);
+            FIllInTaskRepository rep = new FIllInTaskRepository(DbConString, _logger);
             CancelResponse response = null;
 
             // Ищем заявку в таблице FillInTask
@@ -551,7 +555,7 @@ namespace BL.Core
         /// <returns></returns>
         private CancelResponse CancelTaskInFillInMc(string aisId)
         {
-            FIllInMcTaskRepository rep = new FIllInMcTaskRepository(DbConString);
+            FIllInMcTaskRepository rep = new FIllInMcTaskRepository(DbConString, _logger);
             CancelResponse response = null;
 
             // Ищем заявку в таблице FillInMcTask
@@ -620,7 +624,7 @@ namespace BL.Core
         /// <returns></returns>
         private CancelResponse CancelTaskInFillOut(string aisId)
         {
-            FIllOutTaskRepository rep = new FIllOutTaskRepository(DbConString);
+            FIllOutTaskRepository rep = new FIllOutTaskRepository(DbConString, _logger);
             CancelResponse response = null;
 
             // Ищем заявку в таблице FillTask

@@ -5,6 +5,7 @@ using System.Linq;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using DAL.Entity;
+using Serilog;
 
 namespace DAL.UnitOfWork
 {
@@ -12,10 +13,12 @@ namespace DAL.UnitOfWork
     {
 
         public readonly string ConString; // Строка подключения к базе данных
+        private readonly ILogger _l;
 
-        public FIllInMcTaskRepository(string con)
+        public FIllInMcTaskRepository(string con, ILogger logger)
         {
             ConString = con;
+            _l = logger;
         }
 
         public IList<FillInMcTask> GetAll()
@@ -25,13 +28,22 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 @"SELECT * FROM FillInMcTask";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var list = connection.Query<FillInMcTask>(sqlQueryTask).ToList();
-                taskList = list;
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var list = connection.Query<FillInMcTask>(sqlQueryTask).ToList();
+                    taskList = list;
+                }
 
-            return taskList;
+                return taskList;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public FillInMcTask GetItem(long id)
@@ -41,13 +53,22 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT * FROM FillInMcTask WHERE FillInMcTask.FillInMcTaskId = {id}";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var list = connection.Query<FillInMcTask>(sqlQueryTask).ToList();
-                item = list.First();
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var list = connection.Query<FillInMcTask>(sqlQueryTask).ToList();
+                    item = list.First();
+                }
 
-            return item;
+                return item;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
 
         }
 
@@ -58,13 +79,22 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT * FROM FillInMcTask WHERE FillInMcTask.AisTaskId = '{aisTaskId}'";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var list = connection.Query<FillInMcTask>(sqlQueryTask).ToList();
-                item = list.FirstOrDefault();
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var list = connection.Query<FillInMcTask>(sqlQueryTask).ToList();
+                    item = list.FirstOrDefault();
+                }
 
-            return item;
+                return item;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public long Create(FillInMcTask item)
@@ -72,12 +102,21 @@ namespace DAL.UnitOfWork
             long id;
             item.Ts = DateTime.Now;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                id = connection.Insert<FillInMcTask>(item);
+                using (var connection = new SqlConnection(ConString))
+                {
+                    id = connection.Insert<FillInMcTask>(item);
+                }
+
+                return id;
             }
-            
-            return id;
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return 0;
+            }
         }
 
         public bool Update(FillInMcTask item)
@@ -92,21 +131,32 @@ namespace DAL.UnitOfWork
 
             bool result;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var t = item;
-                if (task != null)
+                // Обновляем запись, берем Id из найденной записи в БД,
+                // присваиваем ее новые данные, т.к. АИС не знает о ID внутренней базы
+                using (var connection = new SqlConnection(ConString))
                 {
-                    t.FillInMcTaskId = task.FillInMcTaskId;
-                    result = connection.Update(t);
+                    var t = item;
+                    if (task != null)
+                    {
+                        t.FillInMcTaskId = task.FillInMcTaskId;
+                        result = connection.Update(t);
+                    }
+                    else
+                    {
+                        result = false;
+                    }
                 }
-                else
-                {
-                    result = false;
-                }
-            }
 
-            return result;
+                return result;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return false;
+            }
         }
 
         public bool Delete(long id)
@@ -117,12 +167,21 @@ namespace DAL.UnitOfWork
             var task = GetItem(id);
             if (task == null) return false;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                res = connection.Delete(task);
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    res = connection.Delete(task);
+                }
 
-            return res;
+                return res;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return false;
+            }
         }
     }
 }

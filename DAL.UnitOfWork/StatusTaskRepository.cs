@@ -6,6 +6,7 @@ using Dapper;
 using Dapper.Contrib.Extensions;
 using DAL.Entity;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace DAL.UnitOfWork
 {
@@ -13,10 +14,12 @@ namespace DAL.UnitOfWork
     {
 
         public readonly string ConString; // Строка подключения к базе данных
+        private readonly ILogger _l;
 
-        public StatusTaskRepository(string con)
+        public StatusTaskRepository(string con, ILogger logger)
         {
             ConString = con;
+            _l = logger;
         }
 
         public StatusTask GetItem(long id)
@@ -26,13 +29,22 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT StatusTaskId, Ts, Cid FROM StatusTask WHERE StatusTask.StatusTaskId = {id}";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskM = connection.Query<StatusTaskMediator>(sqlQueryTask).ToList().First();
-                item = GetStatusTask(taskM);
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var taskM = connection.Query<StatusTaskMediator>(sqlQueryTask).ToList().First();
+                    item = GetStatusTask(taskM);
+                }
 
-            return item;
+                return item;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public IList<StatusTask> GetAll()
@@ -42,27 +54,45 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT StatusTaskId, Ts, Cid, Ids FROM StatusTask";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskList = connection.Query<StatusTaskMediator>(sqlQueryTask).ToList();
-                taskList.ForEach(t => items.Add(GetStatusTask(t)));
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var taskList = connection.Query<StatusTaskMediator>(sqlQueryTask).ToList();
+                    taskList.ForEach(t => items.Add(GetStatusTask(t)));
+                }
 
-            return items;
+                return items;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public long Create(StatusTask item)
         {
             long id;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                item.Ts = DateTime.Now;
-                var itemM = GetStatusTaskMediator(item);
-                id = connection.Insert(itemM);
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    item.Ts = DateTime.Now;
+                    var itemM = GetStatusTaskMediator(item);
+                    id = connection.Insert(itemM);
+                }
 
-            return id;
+                return id;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return 0;
+            }
 
         }
 
@@ -80,21 +110,30 @@ namespace DAL.UnitOfWork
 
             bool result;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var t = itemM;
-                if (task != null)
+                using (var connection = new SqlConnection(ConString))
                 {
-                    t.StatusTaskId = task.StatusTaskId;
-                    result = connection.Update(t);
+                    var t = itemM;
+                    if (task != null)
+                    {
+                        t.StatusTaskId = task.StatusTaskId;
+                        result = connection.Update(t);
+                    }
+                    else
+                    {
+                        result = false;
+                    }
                 }
-                else
-                {
-                    result = false;
-                }
-            }
 
-            return result;
+                return result;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return false;
+            }
 
 
         }
@@ -107,13 +146,22 @@ namespace DAL.UnitOfWork
             var item = GetItem(id);
             if (item == null) return false;
 
-            // Производим удаление
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                res = connection.Delete(item);
-            }
+                // Производим удаление
+                using (var connection = new SqlConnection(ConString))
+                {
+                    res = connection.Delete(item);
+                }
 
-            return res;
+                return res;
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return false;
+            }
         }
 
 
@@ -125,6 +173,7 @@ namespace DAL.UnitOfWork
         /// <returns></returns>
         private StatusTask GetStatusTask(StatusTaskMediator task)
         {
+            // TODO: Нужы исключения?
             var item = new StatusTask
             {
                 StatusTaskId = task.StatusTaskId,
@@ -143,6 +192,8 @@ namespace DAL.UnitOfWork
         /// <returns></returns>
         private StatusTaskMediator GetStatusTaskMediator(StatusTask task)
         {
+
+            // TODO: Нужы исключения?
             var item = new StatusTaskMediator()
             {
                 StatusTaskId = task.StatusTaskId,

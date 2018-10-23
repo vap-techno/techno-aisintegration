@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using DAL.Entity;
+using Serilog;
 
 namespace DAL.UnitOfWork
 {
@@ -12,10 +14,12 @@ namespace DAL.UnitOfWork
     {
 
         public readonly string ConString; // Строка подключения к базе данных
+        private readonly ILogger _l;
 
-        public FIllInTaskRepository(string con)
+        public FIllInTaskRepository(string con, ILogger logger)
         {
             ConString = con;
+            _l = logger;
         }
 
         public IList<FillInTask> GetAll()
@@ -25,29 +29,38 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 @"SELECT * FROM FillInTask INNER JOIN FillInDetail ON FillInDetail.FillInTaskId = FillInTask.FillInTaskId";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskDict = new Dictionary<long, FillInTask>();
-
-                var list = connection.Query<FillInTask, FillInDetail, FillInTask>(sqlQueryTask, (task, taskDetail) =>
+                using (var connection = new SqlConnection(ConString))
                 {
-                    if (!taskDict.TryGetValue(task.FillInTaskId, out var taskEntry))
+                    var taskDict = new Dictionary<long, FillInTask>();
+
+                    var list = connection.Query<FillInTask, FillInDetail, FillInTask>(sqlQueryTask, (task, taskDetail) =>
                     {
-                        taskEntry = task;
-                        taskEntry.Details = new List<FillInDetail>();
-                        taskDict.Add(taskEntry.FillInTaskId, taskEntry);
-                    }
+                        if (!taskDict.TryGetValue(task.FillInTaskId, out var taskEntry))
+                        {
+                            taskEntry = task;
+                            taskEntry.Details = new List<FillInDetail>();
+                            taskDict.Add(taskEntry.FillInTaskId, taskEntry);
+                        }
 
-                    taskEntry.Details.Add(taskDetail);
+                        taskEntry.Details.Add(taskDetail);
 
-                    return taskEntry;
-                }, splitOn: "FillInTaskId,FillInDetailId").Distinct().ToList();
+                        return taskEntry;
+                    }, splitOn: "FillInTaskId,FillInDetailId").Distinct().ToList();
 
 
-                taskList = list;
+                    taskList = list;
+                }
+
+                return taskList;
             }
+            catch (Exception e)
+            {
 
-            return taskList;
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public FillInTask GetItem(long id)
@@ -57,29 +70,38 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT * FROM FillInTask INNER JOIN FillInDetail ON FillInDetail.FillInTaskId = FillInTask.FillInTaskId WHERE FillInTask.FillInTaskId = {id}";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskDict = new Dictionary<long, FillInTask>();
-
-                var list = connection.Query<FillInTask, FillInDetail, FillInTask>(sqlQueryTask, (task, taskDetail) =>
+                using (var connection = new SqlConnection(ConString))
                 {
-                    if (!taskDict.TryGetValue(task.FillInTaskId, out var taskEntry))
+                    var taskDict = new Dictionary<long, FillInTask>();
+
+                    var list = connection.Query<FillInTask, FillInDetail, FillInTask>(sqlQueryTask, (task, taskDetail) =>
                     {
-                        taskEntry = task;
-                        taskEntry.Details = new List<FillInDetail>();
-                        taskDict.Add(taskEntry.FillInTaskId, taskEntry);
-                    }
+                        if (!taskDict.TryGetValue(task.FillInTaskId, out var taskEntry))
+                        {
+                            taskEntry = task;
+                            taskEntry.Details = new List<FillInDetail>();
+                            taskDict.Add(taskEntry.FillInTaskId, taskEntry);
+                        }
 
-                    taskEntry.Details.Add(taskDetail);
+                        taskEntry.Details.Add(taskDetail);
 
-                    return taskEntry;
-                }, splitOn: "FillInTaskId,FillInDetailId").Distinct().ToList();
+                        return taskEntry;
+                    }, splitOn: "FillInTaskId,FillInDetailId").Distinct().ToList();
 
 
-                item = list.First();
+                    item = list.First();
+                }
+
+                return item;
             }
+            catch (Exception e)
+            {
 
-            return item;
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
 
         }
 
@@ -90,29 +112,38 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT * FROM FillInTask INNER JOIN FillInDetail ON FillInDetail.FillInTaskId = FillInTask.FillInTaskId WHERE FillInTask.AisTaskId ='{aisTaskId}'";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskDict = new Dictionary<long, FillInTask>();
-
-                var list = connection.Query<FillInTask, FillInDetail, FillInTask>(sqlQueryTask, (task, taskDetail) =>
+                using (var connection = new SqlConnection(ConString))
                 {
-                    if (!taskDict.TryGetValue(task.FillInTaskId, out var taskEntry))
+                    var taskDict = new Dictionary<long, FillInTask>();
+
+                    var list = connection.Query<FillInTask, FillInDetail, FillInTask>(sqlQueryTask, (task, taskDetail) =>
                     {
-                        taskEntry = task;
-                        taskEntry.Details = new List<FillInDetail>();
-                        taskDict.Add(taskEntry.FillInTaskId, taskEntry);
-                    }
+                        if (!taskDict.TryGetValue(task.FillInTaskId, out var taskEntry))
+                        {
+                            taskEntry = task;
+                            taskEntry.Details = new List<FillInDetail>();
+                            taskDict.Add(taskEntry.FillInTaskId, taskEntry);
+                        }
 
-                    taskEntry.Details.Add(taskDetail);
+                        taskEntry.Details.Add(taskDetail);
 
-                    return taskEntry;
-                }, splitOn: "FillInTaskId,FillInDetailId").Distinct().ToList();
+                        return taskEntry;
+                    }, splitOn: "FillInTaskId,FillInDetailId").Distinct().ToList();
 
 
-                item = list.FirstOrDefault();
+                    item = list.FirstOrDefault();
+                }
+
+                return item;
             }
+            catch (Exception e)
+            {
 
-            return item;
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public long Create(FillInTask item)
@@ -120,18 +151,27 @@ namespace DAL.UnitOfWork
             long id;
             item.Ts = DateTime.Now;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                id = connection.Insert<FillInTask>(item);
-                foreach (var d in item.Details)
+                using (var connection = new SqlConnection(ConString))
                 {
-                    d.FillInTaskId = id;
-                    d.Ts = DateTime.Now;
-                    var dId = connection.Insert<FillInDetail>(d);
+                    id = connection.Insert<FillInTask>(item);
+                    foreach (var d in item.Details)
+                    {
+                        d.FillInTaskId = id;
+                        d.Ts = DateTime.Now;
+                        var dId = connection.Insert<FillInDetail>(d);
+                    }
                 }
+
+                return id;
             }
-            
-            return id;
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return 0;
+            }
         }
 
         public bool Update(FillInTask item)
@@ -144,44 +184,64 @@ namespace DAL.UnitOfWork
                 where t.Cid == item.Cid
                 select t).FirstOrDefault();
 
-            bool result;
+            bool result = false;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var t = item;
-                if (task != null)
+                // Обновляем запись, берем Id из найденной записи в БД,
+                // присваиваем ее новые данные, т.к. АИС не знает о ID внутренней базы
+                using (var connection = new SqlConnection(ConString))
                 {
-                    t.FillInTaskId = task.FillInTaskId;
-                    result = connection.Update(t);
+                    var t = item;
+                    if (task != null)
+                    {
+                        t.FillInTaskId = task.FillInTaskId;
+                        result = connection.Update(t);
+                    }
+                    else
+                    {
+                        result = false;
+                    }
                 }
-                else
-                {
-                    result = false;
-                }
-            }
 
-            return result;
+                return result;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return result;
+            }
         }
 
         public bool Delete(long id)
         {
             bool res = false;
-            
+
             // Извлекаем запись в таблице FillInTask
             var task = GetItem(id);
             if (task == null) return false;
 
-            // Вначале удаляем записи в FillInDetail, затем можно удалить запись из FillInTask
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var isSuccess = connection.Delete(task.Details);
-                if (isSuccess)
+                // Вначале удаляем записи в FillInDetail, затем можно удалить запись из FillInTask
+                using (var connection = new SqlConnection(ConString))
                 {
-                    res = connection.Delete(task);
+                    var isSuccess = connection.Delete(task.Details);
+                    if (isSuccess)
+                    {
+                        res = connection.Delete(task);
+                    }
                 }
-            }
 
-            return res;
+                return res;
+
+            }
+            catch (Exception e)
+            {
+
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return false;
+            }
         }
     }
 }

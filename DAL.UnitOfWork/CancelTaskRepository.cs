@@ -7,6 +7,7 @@ using Dapper;
 using Dapper.Contrib.Extensions;
 using DAL.Entity;
 using Newtonsoft.Json;
+using Serilog;
 
 
 namespace DAL.UnitOfWork
@@ -15,10 +16,12 @@ namespace DAL.UnitOfWork
     {
 
         public readonly string ConString; // Строка подключения к базе данных
+        private readonly ILogger _l;
 
-        public CancelTaskRepository(string con)
+        public CancelTaskRepository(string con, ILogger logger)
         {
             ConString = con;
+            _l = logger;
         }
 
         public CancelTask GetItem(long id)
@@ -28,13 +31,21 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT CancelTaskId, Ts, Cid, Ids FROM CancelTask WHERE CancelTask.CancelTaskId = {id}";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskM = connection.Query<CancelTaskMediator>(sqlQueryTask).ToList().FirstOrDefault();
-                item = taskM == null ? null : GetCancelTask(taskM);
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var taskM = connection.Query<CancelTaskMediator>(sqlQueryTask).ToList().FirstOrDefault();
+                    item = taskM == null ? null : GetCancelTask(taskM);
+                }
 
-            return item;
+                return item;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public IList<CancelTask> GetAll()
@@ -44,24 +55,41 @@ namespace DAL.UnitOfWork
             string sqlQueryTask =
                 $@"SELECT CancelTaskId, Ts, Cid, Ids FROM CancelTask";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var taskList = connection.Query<CancelTaskMediator>(sqlQueryTask).ToList();
-                taskList.ForEach( t => items.Add(GetCancelTask(t)));
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var taskList = connection.Query<CancelTaskMediator>(sqlQueryTask).ToList();
+                    taskList.ForEach(t => items.Add(GetCancelTask(t)));
+                }
 
-            return items;
+                return items;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
+            
         }
 
         public long Create(CancelTask item)
         {
-            long id;
+            long id = 0;
             item.Ts = DateTime.Now;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var itemM = GetCancelTaskMediator(item);
-                id = connection.Insert(itemM);
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var itemM = GetCancelTaskMediator(item);
+                    id = connection.Insert(itemM);
+                }
+
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
             }
 
             return id;
@@ -79,25 +107,31 @@ namespace DAL.UnitOfWork
                 where (itemM.Cid == t.Cid)
                 select t).FirstOrDefault();
 
-            bool result;
+            bool result = false;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var t = itemM;
-                if (task != null)
+                using (var connection = new SqlConnection(ConString))
                 {
-                    t.CancelTaskId = task.CancelTaskId;
-                    result = connection.Update(t);
-                }
-                else
-                {
-                    result = false;
-                }
+                    var t = itemM;
+                    if (task != null)
+                    {
+                        t.CancelTaskId = task.CancelTaskId;
+                        result = connection.Update(t);
+                    }
+                    else
+                    {
+                        result = false;
+                    }
 
+                }
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
             }
 
             return result;
-
         }
 
         public bool Delete(long id)
@@ -108,10 +142,18 @@ namespace DAL.UnitOfWork
             var item = GetItem(id);
             if (item == null) return false;
 
-            // Производим удаление
-            using (var connection = new SqlConnection(ConString))
+            
+            try
             {
-                res = connection.Delete(item);
+                // Производим удаление
+                using (var connection = new SqlConnection(ConString))
+                {
+                    res = connection.Delete(item);
+                }
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
             }
 
             return res;
@@ -124,6 +166,7 @@ namespace DAL.UnitOfWork
         /// <returns></returns>
         private CancelTask GetCancelTask(CancelTaskMediator task)
         {
+            // TODO: Надо исключение?
             var item = new CancelTask
             {
                 CancelTaskId = task.CancelTaskId,
@@ -142,6 +185,7 @@ namespace DAL.UnitOfWork
         /// <returns></returns>
         private CancelTaskMediator GetCancelTaskMediator(CancelTask task)
         {
+            // TODO: Надо исключение?
             var item = new CancelTaskMediator()
             {
                 CancelTaskId = 0,

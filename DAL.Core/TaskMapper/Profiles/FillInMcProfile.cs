@@ -25,15 +25,8 @@ namespace DAL.Core.TaskMapper.Profiles
                 .ForMember(d => d.Pvp, opt => opt.MapFrom(src => src.Data.Pvp))
                 .ForMember(d => d.Pmp, opt => opt.MapFrom(src => src.Data.Pmp))
                 ;
-                
 
             CreateMap<FillInMcStatusDetail, FillInMcStatusDetailDto>();
-
-
-            
-
-
-
         }
     }
 }
