@@ -17,25 +17,19 @@ namespace DAL.Core.TaskMapper
     public class TaskMapper
     {
 
-        public TaskMapper()
-        {
-            // Инициализируем Automapper
-            InitMapper();
-        }
-
-        private static void InitMapper()
+        static TaskMapper()
         {
             Mapper.Initialize(cfg =>
-                {
-                    cfg.AddProfile(new FillInProfile());
-                    cfg.AddProfile(new FillInMcProfile());
-                    cfg.AddProfile(new FillOutProfile());
-                    cfg.AddProfile(new CancelProfile());
-                    cfg.AddProfile(new StatusProfile());
-                });
+            {
+                cfg.AddProfile(new FillInProfile());
+                cfg.AddProfile(new FillInMcProfile());
+                cfg.AddProfile(new FillOutProfile());
+                cfg.AddProfile(new CancelProfile());
+                cfg.AddProfile(new StatusProfile());
+            });
         }
 
-
+        
         /// <summary>
         /// Возвращает DTO команды на отмену заявки
         /// </summary>

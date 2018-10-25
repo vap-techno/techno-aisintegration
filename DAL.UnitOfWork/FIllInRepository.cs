@@ -177,12 +177,13 @@ namespace DAL.UnitOfWork
         public bool Update(FillInTask item)
         {
             // Ищем ID в таблице, которая содержит заданный CID
-            // TODO: Запроc пойдет только с маленькой базой
+            // TODO: Пойдет только с маленькой базой, либо выводить в асинхрон
 
             var tasks = GetAll();
             var task = (from t in tasks
                 where t.Cid == item.Cid
                 select t).FirstOrDefault();
+
 
             bool result = false;
 
@@ -190,13 +191,32 @@ namespace DAL.UnitOfWork
             {
                 // Обновляем запись, берем Id из найденной записи в БД,
                 // присваиваем ее новые данные, т.к. АИС не знает о ID внутренней базы
+                // Берем Id для Detail также из найденных записей в БД
                 using (var connection = new SqlConnection(ConString))
                 {
                     var t = item;
                     if (task != null)
                     {
                         t.FillInTaskId = task.FillInTaskId;
-                        result = connection.Update(t);
+
+                        // Подменяем в принятых данных FillInTaskId и FillInDetailId
+                        // для таблицы FillInDetail, т.к. данные могли придти с АИС, а она
+                        // про эти поля не знает
+                        // TODO: Переделать передачу репозитория через DI
+                        var repD = new FillInDetailRepository(ConString, _l);
+                        var details = repD.GetItems(task.FillInTaskId);
+
+                        t.Details.ForEach(d =>
+                        {
+                            var detail = (from entity in details
+                                where entity.Sid == d.Sid
+                                select entity).FirstOrDefault();
+
+                            d.FillInTaskId = task.FillInTaskId;
+                            if (detail != null) d.FillInDetailId = detail.FillInDetailId;
+                        });
+
+                        result = connection.Update(t) && repD.Update(t.Details);
                     }
                     else
                     {

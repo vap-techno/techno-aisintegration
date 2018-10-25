@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{5450BC7B-C33C-4F46-9AB4-FAA6DCCD0F0E}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Temp.Manager.App</RootNamespace>
-    <AssemblyName>Temp.Manager.App</AssemblyName>
+    <RootNamespace>TechnoAisIntegration.App</RootNamespace>
+    <AssemblyName>TechnoAisIntegration.App</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -74,10 +74,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AisJson.Lib\AisJson.Lib.csproj">
-      <Project>{246c5bf7-62a2-4023-9d1f-ac579200e0bc}</Project>
-      <Name>AisJson.Lib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\AisOpcClient.Lib\AisOpcClient.Lib.csproj">
       <Project>{f05c14c8-7956-4b8d-aa69-dfba44b3763b}</Project>
       <Name>AisOpcClient.Lib</Name>

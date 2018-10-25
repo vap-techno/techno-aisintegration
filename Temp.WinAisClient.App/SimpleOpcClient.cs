@@ -68,8 +68,8 @@ namespace Temp.WinAisClient.App
                         });
 
                         // Ожидаем отмены мониторинга 
-                        while (!token.IsCancellationRequested) { }
-                        OnMonitoringCanceled(EventArgs.Empty);
+                        //while (!token.IsCancellationRequested) { }
+                        //OnMonitoringCanceled(EventArgs.Empty);
                     
                 }, token,
                 TaskCreationOptions.LongRunning,

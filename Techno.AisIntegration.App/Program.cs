@@ -101,12 +101,6 @@ namespace Temp.Manager.App
  
             //ShowWindow(GetConsoleWindow(), 0); // На старте окно скрываем
 
-            var options = new ManagerOptions()
-            {
-                DbConString = conString,
-                OpcServerUri = opcUrl
-            };
-
             var manager = new BL.Core.Manager(conString, taskMapper, opcService, Log.Logger);
             
             Application.Run();

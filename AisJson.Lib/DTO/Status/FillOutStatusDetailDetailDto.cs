@@ -110,7 +110,7 @@ namespace AisJson.Lib.DTO.Status
         /// <summary>
         /// [PSpd] Скорость слива
         /// </summary>
-        [JsonProperty(PropertyName = "PSpd", Required = Required.Default)]
+        [JsonProperty(PropertyName = "FSpd", Required = Required.Default)]
         public double PSpd { get; set; }
 
         /// <summary>

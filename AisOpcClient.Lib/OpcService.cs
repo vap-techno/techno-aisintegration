@@ -37,6 +37,8 @@ namespace AisOpcClient.Lib
             _client = new UaClient(url);
             _client.ServerConnectionLost += _client_ServerConnectionLost;
             _logger = logger;
+
+
         }
 
         #endregion
@@ -53,42 +55,51 @@ namespace AisOpcClient.Lib
         public void RunCmdMonitoring()
         {
 
-            // Защита от повоторной подписки 
-            //if (!_cmdCts.IsCancellationRequested && _init) return;
-            if (_runCmdTask != null
-                && _runCmdTask.Status != TaskStatus.Canceled
-                && _runCmdTask.Status != TaskStatus.Faulted
-                && _runCmdTask.Status != TaskStatus.RanToCompletion) return;
+            //Защита от повоторной подписки
 
-                // Создаем новый токен
-                _cmdCts.Dispose();
-                _cmdCts = new CancellationTokenSource();
-                var token = _cmdCts.Token;
+            //if (_runCmdTask != null
+            //    && _runCmdTask.Status != TaskStatus.Canceled
+            //    && _runCmdTask.Status != TaskStatus.Faulted
+            //    && _runCmdTask.Status != TaskStatus.RanToCompletion) return;
 
-            _runCmdTask = Task.Factory.StartNew(async () =>
+            //Создаем новый токен
+            //_cmdCts.Cancel();
+            
+
+            if (_runCmdTask != null && _runCmdTask.Status != TaskStatus.Canceled) return;
+
+            _cmdCts.Dispose();
+            _cmdCts = new CancellationTokenSource();
+            var token = _cmdCts.Token;
+
+            _runCmdTask = Task.Factory.StartNew( async () =>
                 {
                     _logger.Information("мониторинг подключения запущен");
 
                     // Ожидаем отмены мониторинга 
                     while (!token.IsCancellationRequested)
                     {
+                        await Task.Delay(5000, token);
+
                         if (_client.Status == OpcStatus.NotConnected)
                         {
                             try
                             {
                                 _client.Connect(); //блокирует поток, пока коннекта не будет
-                                
                             }
                             catch (Exception ex)
                             {
                                 _logger.Warning("ошибка подключения к OPC-серверу");
                                 continue;
                             }
-                            _client.Monitor<string>(CmdPath, (readEvent, unsubscribe) => { OnValueChanged(new TagEventArgs<string>(readEvent)); });
+
+                            _client.Monitor<string>(CmdPath, (readEvent, unsubscribe) =>
+                            {
+                                OnValueChanged(new TagEventArgs<string>(readEvent));
+                            });
+
                             _logger.Information("OPC-сервер: Запущен мониторинг тэга команды");
                         }
-
-                        await Task.Delay(100);  // должна быть async версия Task.Factory.StartNew(async() =>
                     }
 
                     //Отписаться от _client.Monitor<string>(CmdPath,(readEvent, unsubscribe) => { OnValueChanged(new TagEventArgs<string>(readEvent)); });
@@ -97,16 +108,6 @@ namespace AisOpcClient.Lib
                 }, token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
-
-            
-        }
-
-        /// <summary>
-        /// Отписаться от новых значений тэга CMD из OPC-сервера
-        /// </summary>
-        public void CancelCmdMonitoring()
-        {
-            _cmdCts.Cancel();
         }
 
         /// <summary>
@@ -140,17 +141,21 @@ namespace AisOpcClient.Lib
         private void EraseCmdTag()
         {
             // TODO: вставить обработку исключений
-            if (_client.Status != OpcStatus.Connected) _client.Connect();
+            //if (_client.Status != OpcStatus.Connected) _client.Connect();
             _client.Write(CmdPath, "");
         }
 
         private void _client_ServerConnectionLost(object sender, EventArgs e)
         {
-            _logger.Warning("OPC-сервер: соединение потеряно");
+            
 
-            _cmdCts.Cancel();
-
-            RunCmdMonitoring();
+            if (_client.Status == OpcStatus.NotConnected)
+            {
+                //_logger.Warning("OPC-сервер: соединение потеряно");
+                //_cmdCts.Cancel();
+                //RunCmdMonitoring();
+            }
+            
         }
 
         #endregion

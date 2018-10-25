@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using DAL.Entity;
+using Serilog;
 
 namespace DAL.UnitOfWork
 {
@@ -11,10 +13,12 @@ namespace DAL.UnitOfWork
     {
 
         public readonly string ConString; // Строка подключения к базе данных
+        private readonly ILogger _l;
 
-        public FillInDetailRepository(string con)
+        public FillInDetailRepository(string con, ILogger logger)
         {
             ConString = con;
+            _l = logger;
         }
 
         public FillInDetail GetItem(long id)
@@ -24,12 +28,20 @@ namespace DAL.UnitOfWork
             string query =
                 $@"SELECT * FROM FillInDetail WHERE FillInDetailId = {id}";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                item = connection.Query<FillInDetail>(query).First();
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    item = connection.Query<FillInDetail>(query).First();
+                }
 
-            return item;
+                return item;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public IList<FillInDetail> GetItems(long taskId)
@@ -38,13 +50,21 @@ namespace DAL.UnitOfWork
 
             IList<FillInDetail> items;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var list = connection.Query<FillInDetail>(query).ToList();
-                items = list;
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var list = connection.Query<FillInDetail>(query).ToList();
+                    items = list;
+                }
 
-            return items;
+                return items;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
 
         }
 
@@ -55,47 +75,111 @@ namespace DAL.UnitOfWork
 
             IList<FillInDetail> itemList;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                itemList = connection.Query<FillInDetail>(query).ToList();
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    itemList = connection.Query<FillInDetail>(query).ToList();
+                }
 
-            return itemList;
+                return itemList;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public long Create(FillInDetail item)
         {
             long id;
+            item.Ts = DateTime.Now;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                id = connection.Insert<FillInDetail>(item);
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    id = connection.Insert<FillInDetail>(item);
+                }
 
-            return id;
+                return id;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return 0;
+            }
         }
 
         public bool Update(FillInDetail item)
         {
 
-            // Ищем заданную заявку, предполагая что Cid - уникальный идентификатор
+            // Ищем записи в таблицах, предполагая что Sid и TaskId
+            // - составной уникальный идентификатор
             // Сравнение по ключу Id не используем, т.к. заявка может придти
             // из АИС, а в ней идентификатор не задается
             var details = GetAll();
             var detail = (from d in details
-                where (item.Sid == d.Sid)
+                where (item.Sid == d.Sid) && (item.FillInTaskId == d.FillInTaskId)
                 select d).FirstOrDefault();
 
-            bool result;
+            bool result = false;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var d = item;
-                if (detail != null) d.FillInDetailId = detail.FillInDetailId;
-                result = connection.Update(d);
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var d = item;
+                    if (detail != null)
+                    { 
+                        d.FillInDetailId = detail.FillInDetailId;
+                        result = connection.Update(d);
+                    }
+                    else
+                    {
+                        result = false;
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+
+                return result;
             }
 
-            return result;
+
+        }
+
+        public bool Update(List<FillInDetail> items)
+        {
+            if (items == null)
+            {
+                _l.Debug("Попытка обновления нулевого набора записей в FillInDetail");
+                return false;
+            }
+
+            bool result = false;
+            
+            try
+            {
+                // Обновляем как есть, предполагая, что ключ Id уже задан
+                using (var connection = new SqlConnection(ConString))
+                {
+                    result = connection.Update(items);
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return result;
+            }
+
         }
 
         public bool Delete(long id)
@@ -106,13 +190,21 @@ namespace DAL.UnitOfWork
             var item = GetItem(id);
             if (item == null) return false;
 
-            // Удаляем
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                res = connection.Delete(item);
-            }
+                // Удаляем
+                using (var connection = new SqlConnection(ConString))
+                {
+                    res = connection.Delete(item);
+                }
 
-            return res;
+                return res;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return false;
+            }
         }
     }
 }

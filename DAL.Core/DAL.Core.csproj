@@ -77,7 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AisJson.Lib\AisJson.Lib.csproj">
-      <Project>{246c5bf7-62a2-4023-9d1f-ac579200e0bc}</Project>
+      <Project>{7e51fda9-af79-4572-8cba-d49ba31be23b}</Project>
       <Name>AisJson.Lib</Name>
     </ProjectReference>
     <ProjectReference Include="..\DAL.Entity\DAL.Entity.csproj">

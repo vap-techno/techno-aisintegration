@@ -693,7 +693,7 @@ namespace BL.Core
         {
             _opcService.ValueChanged -= OpcService_ValueChanged;
             _opcService.MonitoringCanceled -= OpcService_MonitoringCanceled;
-            _opcService.CancelCmdMonitoring();
+           
         }
 
     }

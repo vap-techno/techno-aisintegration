@@ -1,16 +1,81 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7E51FDA9-AF79-4572-8CBA-D49BA31BE23B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AisJson.Lib</RootNamespace>
+    <AssemblyName>AisJson.Lib</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
-
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="Serilog" Version="2.7.1" />
-    <PackageReference Include="Serilog.Sinks.ColoredConsole" Version="3.0.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
-    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.7.1\lib\net46\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Include="CmdType.cs" />
+    <Compile Include="DTO\Abstract\IRequestDataDto.cs" />
+    <Compile Include="DTO\Abstract\IRequestDto.cs" />
+    <Compile Include="DTO\Abstract\IResponseDto.cs" />
+    <Compile Include="DTO\Abstract\IStatusDetailDto.cs" />
+    <Compile Include="DTO\Data\CancelDataDto.cs" />
+    <Compile Include="DTO\Data\FillInDataDto.cs" />
+    <Compile Include="DTO\Data\FillInDetailDto.cs" />
+    <Compile Include="DTO\Data\FillInMcDataDto.cs" />
+    <Compile Include="DTO\Data\FillOutDataDto.cs" />
+    <Compile Include="DTO\Data\FillOutDetailDto.cs" />
+    <Compile Include="DTO\Data\StatusDataDto.cs" />
+    <Compile Include="DTO\Response\CancelResponseDto.cs" />
+    <Compile Include="DTO\Response\StatusResponseDto.cs" />
+    <Compile Include="DTO\Status\FillInMcStatusDetailDto.cs" />
+    <Compile Include="DTO\Status\FillInStatusDetailDetailDto.cs" />
+    <Compile Include="DTO\Status\FillInStatusDetailDto.cs" />
+    <Compile Include="DTO\Status\FillOutStatusDetailDetailDto.cs" />
+    <Compile Include="DTO\Status\FillOutStatusDetailDto.cs" />
+    <Compile Include="DTO\Task\CancelTaskDto.cs" />
+    <Compile Include="DTO\Task\FillInMcTaskDto.cs" />
+    <Compile Include="DTO\Task\FillInTaskDto.cs" />
+    <Compile Include="DTO\Task\FillOutTaskDto.cs" />
+    <Compile Include="DTO\Task\StatusTaskDto.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\AisJConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -65,7 +65,7 @@ namespace AisJson.Lib.DTO.Data
         /// [PMP] Масса  продукта (план)
         /// </summary>
         [JsonProperty(PropertyName = "PMP", Required = Required.Default)]
-        public double? Pmp { get; set; } = 0;
+        public double? Pmp { get; set; }
 
     }
 }

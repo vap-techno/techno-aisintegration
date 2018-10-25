@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using DAL.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace DAL.UnitOfWork.Tests
 {
@@ -14,15 +16,24 @@ namespace DAL.UnitOfWork.Tests
 
         private readonly CancelTaskRepository _rep;
 
+        //private readonly ILogger logger;
+
         public static string GenerateCid()
         {
             var d = DateTime.Now;
             return $"{d.Year}{d.Month}{d.Day}{d.Hour}{d.Minute}{d.Second}";
+
+            
         }
 
         public CancelTaskRepositoryTest()
         {
-            _rep = new CancelTaskRepository(conString);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Enrich.WithExceptionDetails()
+                .CreateLogger();
+
+            _rep = new CancelTaskRepository(conString, Log.Logger);
         }
 
         [TestMethod]

@@ -7,6 +7,8 @@ using AisJson.Lib.Utils;
 using AutoMapper;
 using DAL.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace DAL.UnitOfWork.Tests
 {
@@ -23,7 +25,13 @@ namespace DAL.UnitOfWork.Tests
 
         public FillInMcTaskRepositoryTest()
         {
-            _rep = new FIllInMcTaskRepository(conString);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Enrich.WithExceptionDetails()
+                .CreateLogger();
+
+            _rep = new FIllInMcTaskRepository(conString, Log.Logger);
+
             Core.TaskMapper.TaskMapper mapper = new Core.TaskMapper.TaskMapper();
         }
 
@@ -41,7 +49,7 @@ namespace DAL.UnitOfWork.Tests
             string path = Path.Combine(Environment.CurrentDirectory, @"..\..\", fileName);
 
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             var task = Mapper.Map<FillInMcTask>(taskListDto[0]);
 
             // Act

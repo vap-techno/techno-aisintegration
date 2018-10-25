@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using DAL.Entity;
+using Serilog;
 
 namespace DAL.UnitOfWork
 {
@@ -11,10 +13,12 @@ namespace DAL.UnitOfWork
     {
 
         public readonly string ConString; // Строка подключения к базе данных
+        private readonly ILogger _l;
 
-        public FillOutDetailRepository(string con)
+        public FillOutDetailRepository(string con, ILogger logger)
         {
             ConString = con;
+            _l = logger;
         }
 
         public FillOutDetail GetItem(long id)
@@ -24,12 +28,20 @@ namespace DAL.UnitOfWork
             string query =
                 $@"SELECT * FROM FillOutDetail WHERE FillOutDetailId = {id}";
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                item = connection.Query<FillOutDetail>(query).First();
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    item = connection.Query<FillOutDetail>(query).First();
+                }
 
-            return item;
+                return item;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public IList<FillOutDetail> GetItems(long taskId)
@@ -38,13 +50,21 @@ namespace DAL.UnitOfWork
 
             IList<FillOutDetail> items;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                var list = connection.Query<FillOutDetail>(query).ToList();
-                items = list;
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    var list = connection.Query<FillOutDetail>(query).ToList();
+                    items = list;
+                }
 
-            return items;
+                return items;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
 
         }
 
@@ -55,28 +75,49 @@ namespace DAL.UnitOfWork
 
             IList<FillOutDetail> itemList;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                itemList = connection.Query<FillOutDetail>(query).ToList();
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    itemList = connection.Query<FillOutDetail>(query).ToList();
+                }
 
-            return itemList;
+                return itemList;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return null;
+            }
         }
 
         public long Create(FillOutDetail item)
         {
             long id;
+            item.Ts = DateTime.Now;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
-                id = connection.Insert<FillOutDetail>(item);
-            }
+                using (var connection = new SqlConnection(ConString))
+                {
+                    id = connection.Insert<FillOutDetail>(item);
+                }
 
-            return id;
+                return id;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return 0;
+            }
         }
 
         public bool Update(FillOutDetail item)
         {
+            // Ищем записи в таблицах, предполагая что Sid и TaskId
+            // - составной уникальный идентификатор
+            // Сравнение по ключу Id не используем, т.к. заявка может придти
+            // из АИС, а в ней идентификатор не задается
             var details = GetAll();
             var detail = (from d in details
                 where (item.FillOutDetailId == d.FillOutDetailId && item.Sid == d.Sid)
@@ -84,15 +125,51 @@ namespace DAL.UnitOfWork
 
             bool result;
 
-            using (var connection = new SqlConnection(ConString))
+            try
             {
+                using (var connection = new SqlConnection(ConString))
+                {
 
-                var d = item;
-                if (detail != null) d.FillOutDetailId = detail.FillOutDetailId;
-                result = connection.Update(d);
+                    var d = item;
+                    if (detail != null) d.FillOutDetailId = detail.FillOutDetailId;
+                    result = connection.Update(d);
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+
+                return false;
+            }
+        }
+
+        public bool Update(List<FillOutDetail> items)
+        {
+            if (items == null)
+            {
+                _l.Debug("Попытка обновления нулевого набора записей в FillInDetail");
+                return false;
             }
 
-            return result;
+            bool result = false;
+
+            try
+            {
+                // Обновляем как есть, предполагая, что ключ Id уже задан
+                using (var connection = new SqlConnection(ConString))
+                {
+                    result = connection.Update(items);
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                _l.Error(e, "Ошибка соединения с базой данных");
+                return result;
+            }
         }
 
         public bool Delete(long id)

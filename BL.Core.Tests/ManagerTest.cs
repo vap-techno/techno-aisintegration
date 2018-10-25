@@ -3,10 +3,17 @@ using System.Collections.Generic;
 using AisJson.Lib.DTO.Data;
 using AisJson.Lib.DTO.Task;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AisOpcClient;
+using AisOpcClient.Lib;
 using BL.Core;
+using DAL.Core.TaskMapper;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace BL.Core.Tests
 {
+
+    // TODO: Доделать тесты
     [TestClass]
     public class ManagerTest
     {
@@ -17,6 +24,8 @@ namespace BL.Core.Tests
 
         public Manager manager;
 
+        public OpcService opcService;
+
         public static string GenerateCid()
         {
             var d = DateTime.Now;
@@ -25,13 +34,17 @@ namespace BL.Core.Tests
 
         public ManagerTest()
         {
-            ManagerOptions options = new ManagerOptions()
-            {
-                DbConString = conString,
-                OpcServerUri = opcUrl
-            };
 
-            manager = new Manager(options);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Enrich.WithExceptionDetails()
+                .CreateLogger();
+
+            var taskMapper = new TaskMapper();
+
+            opcService = new OpcService(opcUrl, Log.Logger);
+
+            manager = new Manager(conString, taskMapper, opcService, Log.Logger);
         }
 
 

@@ -12,13 +12,31 @@ using AutoMapper;
 using DAL.Entity;
 using DAL.Core.TaskMapper;
 using DAL.Entity.Status;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace DAL.Core.Tests
 {
+
     [TestClass]
     public class TaskMapperTest
     {
-        TaskMapper.TaskMapper mapper = new TaskMapper.TaskMapper();
+        private TaskMapper.TaskMapper _mapper;
+
+
+        public TaskMapperTest()
+        {
+
+            _mapper = new TaskMapper.TaskMapper();
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Enrich.WithExceptionDetails()
+                .CreateLogger();
+
+
+
+        }
 
         [TestMethod]
         public void FillInMapping_1DTO_1Entity()
@@ -30,7 +48,7 @@ namespace DAL.Core.Tests
             
             // Act
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             var task = Mapper.Map<FillInTask>(taskListDto[0]);
             
             // Assert
@@ -47,7 +65,7 @@ namespace DAL.Core.Tests
 
             // Act
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             var task = Mapper.Map<FillInMcTask>(taskListDto[0]);
 
             // Assert
@@ -64,7 +82,7 @@ namespace DAL.Core.Tests
 
             // Act
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             var task = Mapper.Map<FillOutTask>(taskListDto[0]);
 
             // Assert
@@ -81,7 +99,7 @@ namespace DAL.Core.Tests
 
             // Act
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             List<FillInTask> taskList = new List<FillInTask>();
             taskListDto.ForEach(item => taskList.Add(Mapper.Map<FillInTask>(item)));
 
@@ -103,7 +121,7 @@ namespace DAL.Core.Tests
 
             // Act
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             List<FillInMcTask> taskList = new List<FillInMcTask>();
             taskListDto.ForEach(item => taskList.Add(Mapper.Map<FillInMcTask>(item)));
 
@@ -111,7 +129,7 @@ namespace DAL.Core.Tests
             taskList.ForEach(item => dList.Add(Mapper.Map<FillInMcStatusDetail>(item)));
 
             // Assert
-            Assert.AreEqual(null, dList[0].Lnf);
+            Assert.AreEqual("", dList[0].Lnf);
 
         }
 
@@ -125,7 +143,7 @@ namespace DAL.Core.Tests
 
             // Act
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             List<FillOutTask> taskList = new List<FillOutTask>();
             taskListDto.ForEach(item => taskList.Add(Mapper.Map<FillOutTask>(item)));
 
@@ -146,7 +164,7 @@ namespace DAL.Core.Tests
             
 
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             List<FillInTask> taskList = new List<FillInTask>();
             taskListDto.ForEach(item => taskList.Add(Mapper.Map<FillInTask>(item)));
 
@@ -171,7 +189,7 @@ namespace DAL.Core.Tests
             
 
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             List<FillInMcTask> taskList = new List<FillInMcTask>();
             taskListDto.ForEach(item => taskList.Add(Mapper.Map<FillInMcTask>(item)));
 
@@ -183,7 +201,7 @@ namespace DAL.Core.Tests
             sList.ForEach(item => sListDto.Add(Mapper.Map<FillInMcStatusDetail>(item)));
 
             // Assert
-            Assert.AreEqual(null, sListDto[0].Lnf);
+            Assert.AreEqual("", sListDto[0].Lnf);
 
         }
 
@@ -196,7 +214,7 @@ namespace DAL.Core.Tests
             
 
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             List<FillOutTask> taskList = new List<FillOutTask>();
             taskListDto.ForEach(item => taskList.Add(Mapper.Map<FillOutTask>(item)));
 

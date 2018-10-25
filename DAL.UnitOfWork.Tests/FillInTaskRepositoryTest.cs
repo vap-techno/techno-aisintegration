@@ -7,6 +7,9 @@ using AisJson.Lib.Utils;
 using AutoMapper;
 using DAL.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serilog;
+using Serilog.Exceptions;
+
 
 namespace DAL.UnitOfWork.Tests
 {
@@ -23,7 +26,12 @@ namespace DAL.UnitOfWork.Tests
 
         public FillInTaskRepositoryTest()
         {
-            _rep = new FIllInTaskRepository(conString);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Enrich.WithExceptionDetails()
+                .CreateLogger();
+
+            _rep = new FIllInTaskRepository(conString, Log.Logger);
         }
 
         public static string GenerateCid()
@@ -40,7 +48,7 @@ namespace DAL.UnitOfWork.Tests
             string path = Path.Combine(Environment.CurrentDirectory, @"..\..\", fileName);
 
             string json = File.ReadAllText(path);
-            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json);
+            List<IRequestDto> taskListDto = AisJConverter.Deserialize(json, Log.Logger);
             var task = Mapper.Map<FillInTask>(taskListDto[0]);
 
             // Act
@@ -77,7 +85,7 @@ namespace DAL.UnitOfWork.Tests
 
         // 
         [TestMethod]
-        public void Update_ChangeIds_IdsChanged()
+        public void Update_ChangeOn_OnChanged()
         {
             // Arrange
 
@@ -86,6 +94,25 @@ namespace DAL.UnitOfWork.Tests
 
             var task = tasks.Last();
             task.On = "Василий Алибабаевич";
+
+            var res = _rep.Update(task);
+
+            // Assert
+            Assert.IsTrue(res);
+
+        }
+
+        // 
+        [TestMethod]
+        public void Update_ChangeFs_FsChanged()
+        {
+            // Arrange
+
+            // Act
+            var tasks = _rep.GetAll();
+
+            var task = tasks.Last();
+            task.Details[0].Fs = 1;
 
             var res = _rep.Update(task);
 

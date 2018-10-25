@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using AisJson.Lib.DTO;
 using AisJson.Lib.DTO.Abstract;
-using AisJson.Lib.DTO.Data;
 using AisJson.Lib.DTO.Task;
+using AisJson.Lib.DTO;
+using AisJson.Lib.DTO.Data;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
@@ -60,7 +60,7 @@ namespace AisJson.Lib.Utils
             }
             catch (Exception e)
             {
-                logger.Warning("Неверный JSON-формат команды");
+                logger.Warning("Неверный JSON-формат команды {e}", e);
             }
             return lst;
         }
