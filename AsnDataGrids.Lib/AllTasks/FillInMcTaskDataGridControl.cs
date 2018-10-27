@@ -29,7 +29,9 @@ namespace AsnDataGrids.Lib.AllTasks
         private const string SqlAll = @"SELECT [FillInMcTaskId] as 'ID(DB)'
       ,[Ts] as 'TS(DB)'
       ,[Cid] as 'ID команды'
-      ,[AisTaskId] as 'ID задания'
+      ,[AisTaskId] as 'ID задания АИС ТПС'
+      ,[Ls].[Name] as 'Код состояния поста налива'
+      ,[Fs].[Name] as 'Код статуса налива в секцию'
       ,[Tdt] as 'Дата'
       ,[Tno] as 'Номер задания'
       ,[On] as 'ФИО оператора'
@@ -40,8 +42,6 @@ namespace AsnDataGrids.Lib.AllTasks
       ,[Pvp] as 'Объект продукта(план)'
       ,[Pmp] as 'Масса продукта(план)'
       ,[Lnf] as 'Номер поста(факт)'
-      ,[Ls] as 'Код состояния поста налива'
-      ,[Fs] as 'Код статуса налива в секцию'
       ,[Rm] as 'Сообщение о работе'
       ,[Pv1] as 'Показание расходомера до налива продукта'
       ,[Pv2] as 'Показание расходомера после налива продукта'
@@ -56,6 +56,10 @@ namespace AsnDataGrids.Lib.AllTasks
       ,[FSpd] as 'Скорость налива'
       ,[TimeRest] as 'Остаток времени налива'
       FROM [FillInMcTask]
+      INNER JOIN [Ls]
+      ON [Ls].[LsId] = [FillInMcTask].[Ls]
+      INNER JOIN [Fs]
+      ON [Fs].[FsId] = [FillInMcTask].[Fs]
         ";
 
         private const string SqlSort = "\n ORDER BY [FillInMcTask].[Tdt] DESC";

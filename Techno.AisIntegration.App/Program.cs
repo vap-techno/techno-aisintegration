@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Serilog;
-using Serilog.Exceptions;
-using BL.Core;
 using System.Windows.Forms;
 using AisOpcClient.Lib;
 using DAL.Core.TaskMapper;
+using Newtonsoft.Json;
+using Serilog;
+using Serilog.Exceptions;
+using Newtonsoft.Json.Linq;
 
-
-namespace Temp.Manager.App
+namespace TechnoAisIntegration.App
 {
     class Program
     {
@@ -53,10 +48,31 @@ namespace Temp.Manager.App
 
         static void Main(string[] args)
         {
+            #region Configuration
+            // Выбираем стадию разработки dev или prod
+            var cfgFileName = "TAIConfig.json";
+            var cfgPath = Path.Combine(Environment.CurrentDirectory, cfgFileName);
+
+            // Считываем конфигурацию
+            var cfg = Config(args, cfgPath);
+
+            // Строка подключения к БД
+            string conString = $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=TestDapper;Data Source=.\SQLEXPRESS";
+            if (cfg != null)
+            {
+                conString = cfg.Provider == "PostgreSQL"
+                    ? $@"User ID=postgres;Password=xxxxxx;Host=localhost;Port=5432;Database={cfg.DbName};Pooling=true;"
+                    : $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog={cfg.DbName};Data Source=.\SQLEXPRESS";
+            } 
+            #endregion
+
+            // Создаем директорию логгера, если ее не существует
+            string pathDir = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents", "TAI Log Files");
+            Directory.CreateDirectory(pathDir);
 
             // Инициализация логгера
-            string logFile = "TempAisManagerlog.txt";
-            string path = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents", logFile);
+            var path = Path.Combine(pathDir,"TechnoAisIntegration.log");
+            if (cfg != null) path = Path.Combine(pathDir, cfg.LogFile);
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
@@ -64,14 +80,10 @@ namespace Temp.Manager.App
                 .WriteTo.File(path, rollingInterval: RollingInterval.Month)
                 .Enrich.WithExceptionDetails()
                 .CreateLogger();
-
+            
             // Инициализация OPC-клиента
             var opcUrl = new Uri("opc.tcp://localhost:55000");
             var opcService = new OpcService(opcUrl, Log.Logger);
-
-            // Строка подключения к БД
-            const string conString =
-                @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=TestDapper;Data Source=.\SQLEXPRESS";
 
             // Mapper
             var taskMapper = new TaskMapper();
@@ -105,6 +117,81 @@ namespace Temp.Manager.App
             
             Application.Run();
 
+        }
+
+        /// <summary>
+        /// Возвращает класс конфигурации приложения из файла JSON, при ошибке и по-умолчанию вернет тестовую конфигурацию
+        /// </summary>
+        /// <param name="args">dev - тестовый режим, prod - рабочий режим</param>
+        /// <param name="cfgPath">Путь к файлу конфигурации</param>
+        /// <returns></returns>
+        private static Configuration Config(string[] args, string cfgPath)
+        {
+            try
+            {
+                // Читаем конфигурацию из файла
+                string cfgJson = File.ReadAllText(cfgPath);
+                Dictionary<string, Configuration> jsonConfigs = JsonConvert.DeserializeObject<Dictionary<string, Configuration>>(cfgJson);
+
+                Configuration cfg = null;
+
+                // Тестовый режим    
+                if (args.Length != 0 && args[0] == "dev")
+                {
+                    var _cfg = jsonConfigs["dev"];
+
+                    if (_cfg != null
+                        || _cfg.DbName != null
+                        || _cfg.Provider != null
+                        || _cfg.Provider != null)
+                    {
+                        cfg = _cfg;
+                    }
+                }
+                // Рабочий режим
+                else if (args.Length != 0 && args[0] == "prod")
+                {
+                    var _cfg = jsonConfigs["prod"];
+
+                    if (_cfg != null
+                        || _cfg.DbName != null
+                        || _cfg.Provider != null
+                        || _cfg.Provider != null)
+                    {
+                        cfg = _cfg;
+                    }
+                }
+                else
+                {
+                    cfg = new Configuration()
+                    {
+                        DbName = "TestDapper",
+                        LogFile = "Dev_TechnoAisIntegration.log",
+                        Provider = "SQLEXPRESS"
+                    };
+                }
+
+                return cfg;
+            }
+            catch (Exception e)
+            {
+
+                string message = $"Невозможно загрузить конфигурацию. \n " +
+                                 $"Программа запускается в тестовом режиме.\n Обратитесь к разработчику ПО и сообщите код ошибки:\n" +
+                                 $"{e}";
+
+                Console.WriteLine(message);
+
+                // Показываем окно консоли, чтобы пользователь увидел ошибку
+                ShowWindow(GetConsoleWindow(), _isHided ? 0 : 1);
+
+                return new Configuration()
+                {
+                    DbName = "TestDapper",
+                    LogFile = "Dev_TechnoAisIntegration.log",
+                    Provider = "SQLEXPRESS"
+                };
+            }
         }
 
         /// <summary>

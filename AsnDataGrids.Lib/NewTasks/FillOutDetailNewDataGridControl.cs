@@ -28,9 +28,12 @@ namespace AsnDataGrids.Lib.NewTasks
 
         private const string SqlAll = @"SELECT [FillOutDetailId] as 'ID(DB)'
       ,[FillOutDetail].[Ts] as 'TS(DB)'
-      , [FillOutTask].[Tdt] as 'Дата'
-      ,[FillOutTask].[FillOutTaskId] as 'Номер задания АИС ТПС'
+      ,[FillOutTask].[FillOutTaskId] as 'ID задания (DB)'
+      ,[FillOutTask].[Tdt] as 'Дата'
+      ,[FillOutTask].[AisTaskId] as 'ID задания АИС ТПС'
       ,[Sid] as 'ИД секции'
+      ,[Ls].[Name] as 'Код состояния поста налива'
+      ,[Fs].[Name] as 'Код статуса налива в секцию'
       ,[Lnp] as 'Номер поста(план)'
       ,[Sn] as 'Номер секции АЦ'
       ,[FillOutDetail].[Pn] as 'Продукт'
@@ -38,8 +41,6 @@ namespace AsnDataGrids.Lib.NewTasks
       ,[Pvp] as 'Объект продукта(план)'
       ,[Pmp] as 'Масса продукта(план)'
       ,[Lnf] as 'Номер поста(факт)'
-      ,[Ls] as 'Код состояния поста налива'
-      ,[Fs] as 'Код статуса налива в секцию'
       ,[Rm] as 'Сообщение о работе'
       ,[Pv1] as 'Показание расходомера до налива продукта'
       ,[Pv2] as 'Показание расходомера после налива продукта'
@@ -54,18 +55,22 @@ namespace AsnDataGrids.Lib.NewTasks
       ,[Dt2] as 'Дата окончания налива'
       ,[FSpd] as 'Скорость налива'
       ,[TimeRest] as 'Остаток времени налива'
-
-      FROM FillOutDetail 
-      INNER JOIN FillOutTask
-      ON FillOutDetail.FillOutTaskId = FillOutTask.FillOutTaskId
+      FROM [FillOutDetail]
+      INNER JOIN [FillOutTask]
+      ON [FillOutDetail].[FillOutTaskId] = [FillOutTask].[FillOutTaskId]
+	  INNER JOIN [Ls]
+      ON [Ls].[LsId] = [FillOutDetail].[Ls]
+	  INNER JOIN [Fs]
+      ON [Fs].[FsId] = [FillOutDetail].[Fs]
+      WHERE [FillOutDetail].[Fs] = 1 
         ";
 
         private const string SqlSort = "\n ORDER BY [FillOutTask].[Tdt] DESC";
 
-        private const string SqlDay = SqlAll + "\n WHERE [FillOutDetail].[Fs] = 1 AND [FillOutTask].[Tdt] > DATEADD(day,-1,GETDATE())" + SqlSort;
-        private const string SqlWeek = SqlAll + "\n WHERE [FillOutDetail].[Fs] = 1 AND [FillOutTask].[Tdt] > DATEADD(WEEK,-1,GETDATE())" + SqlSort;
-        private const string SqlMonth = SqlAll + "\n WHERE [FillOutDetail].[Fs] = 1 AND [FillOutTask].[Tdt] > DATEADD(month,-1,GETDATE())" + SqlSort;
-        private const string SqlYear = SqlAll + "\n WHERE [FillOutDetail].[Fs] = 1 AND [FillOutTask].[Tdt] > DATEADD(year,-1,GETDATE())" + SqlSort;
+        private const string SqlDay = SqlAll + "AND [FillOutTask].[Tdt] > DATEADD(day,-1,GETDATE())" + SqlSort;
+        private const string SqlWeek = SqlAll + "AND [FillOutTask].[Tdt] > DATEADD(WEEK,-1,GETDATE())" + SqlSort;
+        private const string SqlMonth = SqlAll + "AND [FillOutTask].[Tdt] > DATEADD(month,-1,GETDATE())" + SqlSort;
+        private const string SqlYear = SqlAll + "AND [FillOutTask].[Tdt] > DATEADD(year,-1,GETDATE())" + SqlSort;
 
         #endregion
 
@@ -209,7 +214,7 @@ namespace AsnDataGrids.Lib.NewTasks
         {
 
             return SqlAll +
-                   " \n WHERE [FillOutDetail].[Fs] = 1 AND [FillOutTask].[Tdt] BETWEEN CAST('" +
+                   "AND [FillOutTask].[Tdt] BETWEEN CAST('" +
                    String.Format(new CultureInfo("en-US"), "{0}", beginDateTime) +
                    "' as datetime) AND CAST('" +
                    String.Format(new CultureInfo("en-US"), "{0}", endDateTime) +

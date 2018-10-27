@@ -28,13 +28,16 @@ namespace AsnDataGrids.Lib.AllTasks
 
         private const string SqlAll = @"SELECT [FillInDetailId] as 'ID(DB)'
       ,[FillInDetail].[Ts] as 'TS(DB)'
-      , [FillInTask].[Tdt] as 'Дата'
-      ,[FillInTask].[FillInTaskId] as 'Номер задания АИС ТПС'
+      ,[FillInTask].[FillInTaskId] as 'ID задания (DB)'
+      ,[FillInTask].[Tdt] as 'Дата'
+      ,[FillInTask].[AisTaskId] as 'ID задания АИС ТПС'
       ,[Sid] as 'ИД секции'
+      ,[Ls].[Name] as 'Код состояния поста налива'
+      ,[Fs].[Name] as 'Код статуса налива в секцию'
       ,[Lnp] as 'Номер поста(план)'
       ,[Sn] as 'Номер секции АЦ'
-      ,[Fm] as 'Способ налива'
-      ,[Ppf] as 'Признак производства продукта'
+      ,[Fm].[Name] as 'Способ налива'
+      ,[Ppf].[Name] as 'Признак производства продукта'
       ,[FillInDetail].[Pn] as 'Продукт'
       ,[Bfn] as 'Наименование базового топлива'
       ,[An] as 'Наименование присадки'
@@ -47,8 +50,6 @@ namespace AsnDataGrids.Lib.AllTasks
       ,[Bfmp] as 'Масса базового топлива(план)'
       ,[Amp] as 'Масса присадки(план)'
       ,[Lnf] as 'Номер поста(факт)'
-      ,[Ls] as 'Код состояния поста налива'
-      ,[Fs] as 'Код статуса налива в секцию'
       ,[Rm] as 'Сообщение о работе'
       ,[Pv1] as 'Показание расходомера до налива продукта'
       ,[Pv2] as 'Показание расходомера после налива продукта'
@@ -76,9 +77,17 @@ namespace AsnDataGrids.Lib.AllTasks
       ,[Dt2] as 'Дата окончания налива'
       ,[FSpd] as 'Скорость налива'
       ,[TimeRest] as 'Остаток времени налива'
-      FROM FillInDetail 
-      INNER JOIN FillInTask
-      ON FillInDetail.FillInTaskId = FillInTask.FillInTaskId
+      FROM [FillInDetail]
+      INNER JOIN [FillInTask]
+	  ON [FillInDetail].[FillInTaskId] = [FillInTask].[FillInTaskId]
+	  INNER JOIN [Fm]
+	  ON [Fm].[FmId] = [FillInDetail].[Fm]
+	  INNER JOIN [Ppf]
+	  ON [Ppf].[PpfId] = [FillInDetail].[Ppf]
+	  INNER JOIN [Ls]
+	  ON [Ls].[LsId] = [FillInDetail].[Ls]
+	  INNER JOIN [Fs]
+	  ON [Fs].[FsId] = [FillInDetail].[Fs]
         ";
 
         private const string SqlSort = "\n ORDER BY [FillInTask].[Tdt] DESC";

@@ -35,8 +35,10 @@ namespace AsnDataGrids.Lib.AllTasks
             , [Pn] as 'Гос. номер АЦ'
             , [Dn] as 'ФИО водителия'
             , [On] as 'ФИО оператора'
-            , [Mm] as 'Способ измерения'
-            FROM [FillInTask]";
+            , [Mm].[Name] as 'Способ измерения'
+			FROM [FillInTask]
+			INNER JOIN [Mm]
+			ON [Mm].MmId = [FillInTask].[Mm]";
 
         private const string SqlSort = "\n ORDER BY Tdt DESC";
 

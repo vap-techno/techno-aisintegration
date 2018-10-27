@@ -29,7 +29,9 @@ namespace AsnDataGrids.Lib.NewTasks
         private const string SqlAll = @"SELECT [FillInMcTaskId] as 'ID(DB)'
       ,[Ts] as 'TS(DB)'
       ,[Cid] as 'ID команды'
-      ,[AisTaskId] as 'ID задания'
+      ,[AisTaskId] as 'ID задания АИС ТПС'
+      ,[Ls].[Name] as 'Код состояния поста налива'
+      ,[Fs].[Name] as 'Код статуса налива в секцию'
       ,[Tdt] as 'Дата'
       ,[Tno] as 'Номер задания'
       ,[On] as 'ФИО оператора'
@@ -40,8 +42,6 @@ namespace AsnDataGrids.Lib.NewTasks
       ,[Pvp] as 'Объект продукта(план)'
       ,[Pmp] as 'Масса продукта(план)'
       ,[Lnf] as 'Номер поста(факт)'
-      ,[Ls] as 'Код состояния поста налива'
-      ,[Fs] as 'Код статуса налива в секцию'
       ,[Rm] as 'Сообщение о работе'
       ,[Pv1] as 'Показание расходомера до налива продукта'
       ,[Pv2] as 'Показание расходомера после налива продукта'
@@ -56,14 +56,19 @@ namespace AsnDataGrids.Lib.NewTasks
       ,[FSpd] as 'Скорость налива'
       ,[TimeRest] as 'Остаток времени налива'
       FROM [FillInMcTask]
+      INNER JOIN [Ls]
+      ON [Ls].[LsId] = [FillInMcTask].[Ls]
+      INNER JOIN [Fs]
+      ON [Fs].[FsId] = [FillInMcTask].[Fs]
+      WHERE [FillInMcTask].[Fs] = 1 
         ";
 
         private const string SqlSort = "\n ORDER BY [FillInMcTask].[Tdt] DESC";
 
-        private const string SqlDay = SqlAll + "\n WHERE [FillInMcTask].[Fs] = 1 AND [FillInMcTask].[Tdt] > DATEADD(day,-1,GETDATE())" + SqlSort;
-        private const string SqlWeek = SqlAll + "\n WHERE [FillInMcTask].[Fs] = 1 AND [FillInMcTask].[Tdt] > DATEADD(WEEK,-1,GETDATE())" + SqlSort;
-        private const string SqlMonth = SqlAll + "\n WHERE [FillInMcTask].[Fs] = 1 AND [FillInMcTask].[Tdt] > DATEADD(month,-1,GETDATE())" + SqlSort;
-        private const string SqlYear = SqlAll + "\n WHERE [FillInMcTask].[Fs] = 1 AND [FillInMcTask].[Tdt] > DATEADD(year,-1,GETDATE())" + SqlSort;
+        private const string SqlDay = SqlAll + "AND [FillInMcTask].[Tdt] > DATEADD(day,-1,GETDATE())" + SqlSort;
+        private const string SqlWeek = SqlAll + "AND [FillInMcTask].[Tdt] > DATEADD(WEEK,-1,GETDATE())" + SqlSort;
+        private const string SqlMonth = SqlAll + "AND [FillInMcTask].[Tdt] > DATEADD(month,-1,GETDATE())" + SqlSort;
+        private const string SqlYear = SqlAll + "AND [FillInMcTask].[Tdt] > DATEADD(year,-1,GETDATE())" + SqlSort;
 
         #endregion
 
@@ -207,7 +212,7 @@ namespace AsnDataGrids.Lib.NewTasks
         {
 
             return SqlAll +
-                   " \n WHERE [FillInMcTask].[Fs] = 1 AND [FillInMcTask].[Tdt] BETWEEN CAST('" +
+                   "AND [FillInMcTask].[Tdt] BETWEEN CAST('" +
                    String.Format(new CultureInfo("en-US"), "{0}", beginDateTime) +
                    "' as datetime) AND CAST('" +
                    String.Format(new CultureInfo("en-US"), "{0}", endDateTime) +

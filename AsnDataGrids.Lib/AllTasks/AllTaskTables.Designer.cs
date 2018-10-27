@@ -30,15 +30,15 @@
         {
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageFillInTask = new System.Windows.Forms.TabPage();
-            this.fillInTaskDataGridControl1 = new FillInTaskDataGridControl();
+            this.fillInTaskDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillInTaskDataGridControl();
             this.tabPageFillInTaskDetail = new System.Windows.Forms.TabPage();
-            this.fillInDetailDataGridControl1 = new FillInDetailDataGridControl();
+            this.fillInDetailDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillInDetailDataGridControl();
             this.tabPageFillInMcTask = new System.Windows.Forms.TabPage();
-            this.fillInMcTaskDataGridControl1 = new FillInMcTaskDataGridControl();
+            this.fillInMcTaskDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillInMcTaskDataGridControl();
             this.tabPageFillOutTask = new System.Windows.Forms.TabPage();
-            this.fillOutTaskDataGridControl1 = new FillOutTaskDataGridControl();
+            this.fillOutTaskDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillOutTaskDataGridControl();
             this.tabPageFillOutDetail = new System.Windows.Forms.TabPage();
-            this.fillOutDetailDataGridControl1 = new FillOutDetailDataGridControl();
+            this.fillOutDetailDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillOutDetailDataGridControl();
             this.tabControlMain.SuspendLayout();
             this.tabPageFillInTask.SuspendLayout();
             this.tabPageFillInTaskDetail.SuspendLayout();
@@ -75,10 +75,10 @@
             // 
             // fillInTaskDataGridControl1
             // 
-            this.fillInTaskDataGridControl1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.fillInTaskDataGridControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fillInTaskDataGridControl1.Location = new System.Drawing.Point(3, 3);
             this.fillInTaskDataGridControl1.Name = "fillInTaskDataGridControl1";
-            this.fillInTaskDataGridControl1.Size = new System.Drawing.Size(1596, 388);
+            this.fillInTaskDataGridControl1.Size = new System.Drawing.Size(1596, 391);
             this.fillInTaskDataGridControl1.TabIndex = 0;
             // 
             // tabPageFillInTaskDetail
@@ -87,7 +87,7 @@
             this.tabPageFillInTaskDetail.Location = new System.Drawing.Point(4, 24);
             this.tabPageFillInTaskDetail.Name = "tabPageFillInTaskDetail";
             this.tabPageFillInTaskDetail.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageFillInTaskDetail.Size = new System.Drawing.Size(1488, 522);
+            this.tabPageFillInTaskDetail.Size = new System.Drawing.Size(1602, 397);
             this.tabPageFillInTaskDetail.TabIndex = 1;
             this.tabPageFillInTaskDetail.Text = "НАЛИВ В АЦ. СЕКЦИИ (FillInDetail)";
             this.tabPageFillInTaskDetail.UseVisualStyleBackColor = true;
@@ -97,7 +97,7 @@
             this.fillInDetailDataGridControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fillInDetailDataGridControl1.Location = new System.Drawing.Point(3, 3);
             this.fillInDetailDataGridControl1.Name = "fillInDetailDataGridControl1";
-            this.fillInDetailDataGridControl1.Size = new System.Drawing.Size(1482, 516);
+            this.fillInDetailDataGridControl1.Size = new System.Drawing.Size(1596, 391);
             this.fillInDetailDataGridControl1.TabIndex = 0;
             // 
             // tabPageFillInMcTask
@@ -106,7 +106,7 @@
             this.tabPageFillInMcTask.Location = new System.Drawing.Point(4, 24);
             this.tabPageFillInMcTask.Name = "tabPageFillInMcTask";
             this.tabPageFillInMcTask.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageFillInMcTask.Size = new System.Drawing.Size(1488, 522);
+            this.tabPageFillInMcTask.Size = new System.Drawing.Size(1602, 397);
             this.tabPageFillInMcTask.TabIndex = 2;
             this.tabPageFillInMcTask.Text = "НАЛИВ КМХ (FillInMcTask)";
             this.tabPageFillInMcTask.UseVisualStyleBackColor = true;
@@ -116,7 +116,7 @@
             this.fillInMcTaskDataGridControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fillInMcTaskDataGridControl1.Location = new System.Drawing.Point(3, 3);
             this.fillInMcTaskDataGridControl1.Name = "fillInMcTaskDataGridControl1";
-            this.fillInMcTaskDataGridControl1.Size = new System.Drawing.Size(1482, 516);
+            this.fillInMcTaskDataGridControl1.Size = new System.Drawing.Size(1596, 391);
             this.fillInMcTaskDataGridControl1.TabIndex = 0;
             // 
             // tabPageFillOutTask
@@ -125,7 +125,7 @@
             this.tabPageFillOutTask.Location = new System.Drawing.Point(4, 24);
             this.tabPageFillOutTask.Name = "tabPageFillOutTask";
             this.tabPageFillOutTask.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageFillOutTask.Size = new System.Drawing.Size(1488, 522);
+            this.tabPageFillOutTask.Size = new System.Drawing.Size(1602, 397);
             this.tabPageFillOutTask.TabIndex = 3;
             this.tabPageFillOutTask.Text = "СЛИВ ИЗ АЦ (FillOutTask)";
             this.tabPageFillOutTask.UseVisualStyleBackColor = true;
@@ -135,7 +135,7 @@
             this.fillOutTaskDataGridControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fillOutTaskDataGridControl1.Location = new System.Drawing.Point(3, 3);
             this.fillOutTaskDataGridControl1.Name = "fillOutTaskDataGridControl1";
-            this.fillOutTaskDataGridControl1.Size = new System.Drawing.Size(1482, 516);
+            this.fillOutTaskDataGridControl1.Size = new System.Drawing.Size(1596, 391);
             this.fillOutTaskDataGridControl1.TabIndex = 0;
             // 
             // tabPageFillOutDetail
@@ -144,7 +144,7 @@
             this.tabPageFillOutDetail.Location = new System.Drawing.Point(4, 24);
             this.tabPageFillOutDetail.Name = "tabPageFillOutDetail";
             this.tabPageFillOutDetail.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageFillOutDetail.Size = new System.Drawing.Size(1488, 522);
+            this.tabPageFillOutDetail.Size = new System.Drawing.Size(1602, 397);
             this.tabPageFillOutDetail.TabIndex = 4;
             this.tabPageFillOutDetail.Text = "СЛИВ ИЗ АЦ (FillOutDetail)";
             this.tabPageFillOutDetail.UseVisualStyleBackColor = true;
@@ -154,7 +154,7 @@
             this.fillOutDetailDataGridControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.fillOutDetailDataGridControl1.Location = new System.Drawing.Point(3, 3);
             this.fillOutDetailDataGridControl1.Name = "fillOutDetailDataGridControl1";
-            this.fillOutDetailDataGridControl1.Size = new System.Drawing.Size(1482, 516);
+            this.fillOutDetailDataGridControl1.Size = new System.Drawing.Size(1596, 391);
             this.fillOutDetailDataGridControl1.TabIndex = 0;
             // 
             // AllTaskTables
