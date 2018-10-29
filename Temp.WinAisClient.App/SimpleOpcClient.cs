@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Hylasoft.Opc.Ua;
 using Hylasoft.Opc.Common;
 using Opc;
@@ -46,11 +47,11 @@ namespace Temp.WinAisClient.App
         /// <summary>
         /// Подписывается на новые значения тэга CMD из OPC-сервера
         /// </summary>
-        public void RunRespMonitoring()
+        public void RunMonitoring()
         {
 
             // Защита от повоторной подписки 
-            if (!_cmdCts.IsCancellationRequested && _init) return;
+            if (!IsConnected && !_cmdCts.IsCancellationRequested && _init) return;
 
             // Создаем новый токен
             _cmdCts.Dispose();
@@ -60,17 +61,32 @@ namespace Temp.WinAisClient.App
             _runCmdTask = Task.Factory.StartNew(() =>
                 {
 
+                    try
+                    {
                         _client.Connect();
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show("Не могу соединиться", "Connection");
+                        _cmdCts.Cancel();
+                        return;
+                    }
+                    
 
                         _client.Monitor<string>(RespPath, (readEvent, unsubscribe) =>
                         {
-                            OnValueChanged(new TagEventArgs<string>(readEvent));
+                            OnValueChanged(new TagEventArgs<string>(RespPath,readEvent));
                         });
 
-                        // Ожидаем отмены мониторинга 
-                        //while (!token.IsCancellationRequested) { }
-                        //OnMonitoringCanceled(EventArgs.Empty);
-                    
+                        _client.Monitor<string>(CmdPath, (readEvent, unsubscribe) =>
+                        {
+                            OnValueChanged(new TagEventArgs<string>(CmdPath,readEvent));
+                        });
+
+                    // Ожидаем отмены мониторинга 
+                    //while (!token.IsCancellationRequested) { }
+                    //OnMonitoringCanceled(EventArgs.Empty);
+
                 }, token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -82,11 +98,11 @@ namespace Temp.WinAisClient.App
         /// Записать значение в тэг ответа OPC-сервера
         /// </summary>
         /// <param name="value"></param>
-        public void WriteCmd(string value)
+        public async void WriteCmdAsync(string value)
         {
             // TODO: вставить обработку исключений
             if (_client.Status != OpcStatus.Connected) _client.Connect();
-            _client.Write(CmdPath, value);
+            await _client.WriteAsync(CmdPath, value);
 
         }
 

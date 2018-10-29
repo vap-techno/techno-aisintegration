@@ -68,21 +68,12 @@ namespace BL.Core
 
         #endregion ctor
 
-        private void Init()
+        private async void Init()
         {
 
             // Подписываемся на события
+            _opcService.Connect();
             _opcService.ValueChanged += OpcService_ValueChanged;
-            _opcService.MonitoringCanceled += OpcService_MonitoringCanceled;
-
-            // Запускаем мониторинг
-            _opcService.RunCmdMonitoring();
-            
-        }
-
-        private void OpcService_MonitoringCanceled(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         private void OpcService_ValueChanged(object sender, TagEventArgs<string> e)
@@ -113,7 +104,7 @@ namespace BL.Core
 
                 // Очищаем пустые команды и пишем в OPC-сервер ответы
                 respDtoList.RemoveAll(item => item == null);
-                _opcService.WriteResponse(JsonConvert.SerializeObject(respDtoList));
+                _opcService.WriteResponseAsync(JsonConvert.SerializeObject(respDtoList));
             }
 
         }
@@ -689,12 +680,12 @@ namespace BL.Core
 
         #endregion
 
-        ~Manager()
-        {
-            _opcService.ValueChanged -= OpcService_ValueChanged;
-            _opcService.MonitoringCanceled -= OpcService_MonitoringCanceled;
-           
-        }
+        //~Manager()
+        //{
+        //    _opcService.ValueChanged -= OpcService_ValueChanged;
+        //    _opcService.MonitoringCanceled -= OpcService_MonitoringCanceled;
+   
+        //}
 
     }
 }

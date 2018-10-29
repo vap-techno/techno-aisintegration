@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsnDataGrids.Lib", "AsnData
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsnDataGridsApp", "AsnDataGridsApp\AsnDataGridsApp.csproj", "{AA749B5C-5026-41C7-A595-5725169E6946}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Temp.OpcClient.App", "Temp.OpcClient.App\Temp.OpcClient.App.csproj", "{A62F5B3C-8265-4616-B968-5CE10931927F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,10 @@ Global
 		{AA749B5C-5026-41C7-A595-5725169E6946}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA749B5C-5026-41C7-A595-5725169E6946}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA749B5C-5026-41C7-A595-5725169E6946}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A62F5B3C-8265-4616-B968-5CE10931927F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A62F5B3C-8265-4616-B968-5CE10931927F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A62F5B3C-8265-4616-B968-5CE10931927F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A62F5B3C-8265-4616-B968-5CE10931927F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +133,7 @@ Global
 		{A5396DA8-13AD-454F-8C08-03981EC16011} = {CB59D612-CC51-4FFF-86E9-185FC2530C18}
 		{18CAEBAB-1F7D-461A-B1DD-7989572DA3D0} = {A5396DA8-13AD-454F-8C08-03981EC16011}
 		{AA749B5C-5026-41C7-A595-5725169E6946} = {A5396DA8-13AD-454F-8C08-03981EC16011}
+		{A62F5B3C-8265-4616-B968-5CE10931927F} = {CB59D612-CC51-4FFF-86E9-185FC2530C18}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BAB61B3-4DAE-48B9-A0BD-17548FCDB720}

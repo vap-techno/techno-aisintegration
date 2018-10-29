@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using AisOpcClient.Lib;
 using DAL.Core.TaskMapper;
@@ -51,7 +52,7 @@ namespace TechnoAisIntegration.App
             #region Configuration
             // Выбираем стадию разработки dev или prod
             var cfgFileName = "TAIConfig.json";
-            var cfgPath = Path.Combine(Environment.CurrentDirectory, cfgFileName);
+            string cfgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cfgFileName);
 
             // Считываем конфигурацию
             var cfg = Config(args, cfgPath);
@@ -99,7 +100,7 @@ namespace TechnoAisIntegration.App
             //menu.MenuItems.Add(0, mnuShow);
             //menu.MenuItems.Add(1, mnuHide);
 
-            string iconPath = Path.Combine(Environment.CurrentDirectory, "app.ico");
+            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
 
             var icon = new NotifyIcon
             {
@@ -111,10 +112,10 @@ namespace TechnoAisIntegration.App
 
             icon.DoubleClick += Icon_DoubleClick;
  
-            //ShowWindow(GetConsoleWindow(), 0); // На старте окно скрываем
+            ShowWindow(GetConsoleWindow(), 0); // На старте окно скрываем
 
             var manager = new BL.Core.Manager(conString, taskMapper, opcService, Log.Logger);
-            
+
             Application.Run();
 
         }
@@ -215,6 +216,7 @@ namespace TechnoAisIntegration.App
         private static void HandleConsoleSignal(ConsoleSignal consoleSignal)
         {
             Log.Warning("Приложение закрыто с кодом {consoleSignal}",consoleSignal.ToString());
+            if (consoleSignal == ConsoleSignal.CtrlC || consoleSignal == ConsoleSignal.CtrlBreak) Application.Exit();
         }
     }
 }

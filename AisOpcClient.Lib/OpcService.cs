@@ -9,7 +9,7 @@ using Serilog;
 namespace AisOpcClient.Lib
 {
 
-    public class OpcService : IDisposable
+    public class OpcService 
     {
 
         #region Fields
@@ -17,16 +17,20 @@ namespace AisOpcClient.Lib
         private readonly Uri _opcUri; // URL OPC-сервера
         private const string CmdPath = "Data.Node.AIS.Task.Cmd"; // Путь к тэгу команды
         private const string RespPath = "Data.Node.AIS.Task.Response"; // Путь к тэгу ответа
-        private Task _runCmdTask;
-        private bool _init; // Флаг первой инициализации
+
+        private Task _connectTask; // Таск по отслеживанию соединения
+        private int _conCounter = 0; // Циклический счетчик анализа соединения
+        private const int ReconnetCount = 12; // Счетчик, после которого произойдет реконнект с сервером
+
+
         private readonly UaClient _client; // UA - клиент
-        private readonly ILogger _logger;
+        private readonly ILogger _logger; // Логгер
+        
 
         #endregion
 
         #region Events
         public event EventHandler<TagEventArgs<string>> ValueChanged;
-        public event EventHandler MonitoringCanceled;
         #endregion
 
         #region ctors
@@ -35,9 +39,17 @@ namespace AisOpcClient.Lib
             _opcUri = url;
             _cmdCts = new CancellationTokenSource();
             _client = new UaClient(url);
-            _client.ServerConnectionLost += _client_ServerConnectionLost;
+            _client.Options.SubscriptionLifetimeCount = 100;
+            _client.Options.SubscriptionKeepAliveCount = 10;
+            _client.Options.SessionTimeout = 4294967295;
             _logger = logger;
 
+            _client.ServerConnectionLost += _client_ServerConnectionLost1;
+
+        }
+
+        private void _client_ServerConnectionLost1(object sender, EventArgs e)
+        {
 
         }
 
@@ -48,112 +60,114 @@ namespace AisOpcClient.Lib
         /// </summary>
         public bool IsConnected => _client.Status == OpcStatus.Connected;
 
-        #region Methods
-        /// <summary>
-        /// Подписывается на новые значения тэга CMD из OPC-сервера
-        /// </summary>
-        public void RunCmdMonitoring()
+        public void Connect()
         {
 
-            //Защита от повоторной подписки
-
-            //if (_runCmdTask != null
-            //    && _runCmdTask.Status != TaskStatus.Canceled
-            //    && _runCmdTask.Status != TaskStatus.Faulted
-            //    && _runCmdTask.Status != TaskStatus.RanToCompletion) return;
-
-            //Создаем новый токен
-            //_cmdCts.Cancel();
-            
-
-            if (_runCmdTask != null && _runCmdTask.Status != TaskStatus.Canceled) return;
-
-            _cmdCts.Dispose();
             _cmdCts = new CancellationTokenSource();
             var token = _cmdCts.Token;
 
-            _runCmdTask = Task.Factory.StartNew( async () =>
+            _connectTask = Task.Factory.StartNew(async () =>
                 {
-                    _logger.Information("мониторинг подключения запущен");
+                    _logger.Information("Мониторинг подключения запущен");
 
                     // Ожидаем отмены мониторинга 
                     while (!token.IsCancellationRequested)
                     {
                         await Task.Delay(5000, token);
 
+                        // Время реконнекта достигнуто, если сервер будет недоступен,
+                        // то будет выкинуто исключение
+                        if (_conCounter++ > ReconnetCount)
+                        {
+                            try
+                            {
+                                _conCounter = 0;
+                                _client.ReConnect();
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.Warning("OPC-сервер: Неудачный реконнект.",e);
+                            }
+                        }
+
+                        // Если соединение пропало - подключаемся и подписываемся заново
                         if (_client.Status == OpcStatus.NotConnected)
                         {
                             try
                             {
                                 _client.Connect(); //блокирует поток, пока коннекта не будет
+
+                                if (_client.Status == OpcStatus.Connected)
+                                {
+                                    RunCmdMonitoring();
+                                }
                             }
                             catch (Exception ex)
                             {
-                                _logger.Warning("ошибка подключения к OPC-серверу");
-                                continue;
+                                _logger.Warning("OPC-сервер: ошибка подключения");
                             }
 
-                            _client.Monitor<string>(CmdPath, (readEvent, unsubscribe) =>
-                            {
-                                OnValueChanged(new TagEventArgs<string>(readEvent));
-                            });
-
-                            _logger.Information("OPC-сервер: Запущен мониторинг тэга команды");
                         }
                     }
 
-                    //Отписаться от _client.Monitor<string>(CmdPath,(readEvent, unsubscribe) => { OnValueChanged(new TagEventArgs<string>(readEvent)); });
-                    OnMonitoringCanceled(EventArgs.Empty);
                     _logger.Information("мониторинг подключения отключен");
+
                 }, token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+        }
+
+        #region Methods
+
+        /// <summary>
+        /// Подписывается на новые значения тэга CMD из OPC-сервера
+        /// </summary>
+        public void RunCmdMonitoring()
+        {
+                _client.Monitor<string>(CmdPath,
+                    (readEvent, unsubscribe) =>
+                    {
+                        OnValueChanged(new TagEventArgs<string>(readEvent));
+                    });
+
+                _logger.Information("OPC-сервер: Запущен мониторинг тэга команды");
         }
 
         /// <summary>
         /// Записать значение в тэг ответа OPC-сервера
         /// </summary>
         /// <param name="value"></param>
-        public void WriteResponse(string value)
+        public async void WriteResponseAsync(string value)
         {
-            if (_client.Status != OpcStatus.Connected)
+            if (_client.Status == OpcStatus.Connected)
             { 
                 try
                 {
-                    _client.Connect();
+                    await _client.WriteAsync(RespPath, value);
+                    _logger.Information("OPC-сервер: Запись в тэг Response: {value}", value);
                 }
                 catch (Exception e)
                 {
-                    _logger.Warning("ошибка подключения к OPC-серверу");
+                    _logger.Warning("Ошибка записи в OPC-сервер");
                     return;
                 }
             }
-
-            _client.Write(RespPath, value);
-
-            _logger.Information("OPC-сервер: Запись в тэг Response: {value}", value);
-            
         }
 
         /// <summary>
         /// Очистить значение командного тэга
         /// </summary>
-        private void EraseCmdTag()
+        private async void EraseCmdTagAsync()
         {
-            // TODO: вставить обработку исключений
-            //if (_client.Status != OpcStatus.Connected) _client.Connect();
-            _client.Write(CmdPath, "");
-        }
 
-        private void _client_ServerConnectionLost(object sender, EventArgs e)
-        {
-            
-
-            if (_client.Status == OpcStatus.NotConnected)
+            try
             {
-                //_logger.Warning("OPC-сервер: соединение потеряно");
-                //_cmdCts.Cancel();
-                //RunCmdMonitoring();
+                await _client.WriteAsync(CmdPath, "");
+            }
+            catch (Exception e)
+            {
+                _logger.Warning("OPC-сервер: Неудачное обнуление тэга");
             }
             
         }
@@ -172,16 +186,10 @@ namespace AisOpcClient.Lib
 
             ValueChanged?.Invoke(this, e);
 
-            // Очищаем командны тэг
-            EraseCmdTag();
-
             _logger.Information("OPC-сервер: принято новое значение {Value}", e.Tag.Value);
-        }
 
-        private void OnMonitoringCanceled(EventArgs e)
-        {
-            MonitoringCanceled?.Invoke(this, EventArgs.Empty);
-            _logger.Information("OPC-сервер: Команда на отмену мониторинга переменой команды");
+            // Очищаем командны тэг
+            EraseCmdTagAsync();
         }
 
         #endregion
@@ -190,7 +198,7 @@ namespace AisOpcClient.Lib
         public void Dispose()
         {
             _cmdCts?.Dispose();
-            _runCmdTask?.Dispose();
+            _connectTask?.Dispose();
             _client?.Dispose();
         }
         #endregion
