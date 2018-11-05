@@ -267,23 +267,23 @@ namespace BL.Core
                     CancelResponse resp = null;
 
                     // Вначале пытаемся отменить в таблице FillInTask (Налив в АЦ)
-                    resp = CancelTaskInFillIn(aisId);
+                    resp = CancelTaskInFillIn(aisId, dto.Cid);
                     if (resp == null)
                     {
                         // Пытаемся отменить в таблице FillInMcTask (Налив в АЦ КМХ)
-                        resp = CancelTaskInFillInMc(aisId);
+                        resp = CancelTaskInFillInMc(aisId, dto.Cid);
 
                         if (resp == null)
                         {
                             // Пытаемся отменить в таблице FillOutTask (Слив из АЦ)
-                            resp = CancelTaskInFillOut(aisId);
+                            resp = CancelTaskInFillOut(aisId, dto.Cid);
 
                             if (resp == null)
                             {
                                 resp = new CancelResponse()
                                 {
                                     Id = aisId,
-                                    Cid = "",
+                                    Cid = dto.Cid,
                                     R = true,
                                     Rm = "Заявка не найдена"
                                 };
@@ -337,30 +337,30 @@ namespace BL.Core
                 {
                     StatusResponse resp = null;
 
-                    // Вначале пытаемся отменить в таблице FillInTask (Налив в АЦ)
-                    resp = StatusTaskFillIn(aisId);
+                    // Вначале пытаемся в таблице FillInTask (Налив в АЦ)
+                    resp = StatusTaskFillIn(aisId, dto.Cid);
                     if (resp == null)
                     {
-                        // Пытаемся отменить в таблице FillInMcTask (Налив в АЦ КМХ)
-                        resp = StatusTaskFillInMc(aisId);
+                        // Пытаемся в таблице FillInMcTask (Налив в АЦ КМХ)
+                        resp = StatusTaskFillInMc(aisId, dto.Cid);
 
                         if (resp == null)
                         {
-                            // Пытаемся отменить в таблице FillOutTask (Слив из АЦ)
-                            resp = StatusTaskFillOut(aisId);
+                            // Пытаемся в таблице FillOutTask (Слив из АЦ)
+                            resp = StatusTaskFillOut(aisId, dto.Cid);
 
                             if (resp == null)
                             {
-                                // Если заявки не обнаружено ни в одной из таблице - формируем сообщение в логd
+                                // Если заявки не обнаружено ни в одной из таблице - формируем сообщение в лог
                                 resp = new StatusResponse()
                                 {
                                     Id = aisId,
-                                    Cid = "",
+                                    Cid = dto.Cid,
                                     Sc = 5,
                                     Rm = "Заявки не существует"
                                 };
 
-                                _logger.Warning("Заявка СТАТУС. Заявка на отмену с ID = {aisId} не найдена", aisId);
+                                _logger.Warning("Заявка СТАТУС. Заявка на статус с ID = {aisId} не найдена", aisId);
                             }
                         }
                     }
@@ -378,7 +378,7 @@ namespace BL.Core
 
             }
 
-            _logger.Warning("Заявка СТАТУС. Заявка на отмену с CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", task.Cid);
+            _logger.Warning("Заявка СТАТУС. Заявка на статус с CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", task.Cid);
 
             return null;
         }
@@ -387,7 +387,7 @@ namespace BL.Core
 
         #region Status Task Handlers
 
-        private StatusResponse StatusTaskFillIn(string aisId)
+        private StatusResponse StatusTaskFillIn(string aisId, string statusCid)
         {
             FIllInTaskRepository rep = new FIllInTaskRepository(DbConString, _logger);
             StatusResponse response = null;
@@ -401,7 +401,7 @@ namespace BL.Core
             response = new StatusResponse()
             {
                 Id = foundedTask.AisTaskId,
-                Cid = foundedTask.Cid,
+                Cid = statusCid,
                 Sc = 0, // TODO: Добавить вычисление статуса заявки по статусам из секций
                 Rm = "Статус из таблицы налива в АЦ",
                 Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
@@ -412,7 +412,7 @@ namespace BL.Core
             return response;
         }
 
-        private StatusResponse StatusTaskFillInMc(string aisId)
+        private StatusResponse StatusTaskFillInMc(string aisId, string statusCid)
         {
             FIllInMcTaskRepository rep = new FIllInMcTaskRepository(DbConString, _logger);
             StatusResponse response = null;
@@ -426,7 +426,7 @@ namespace BL.Core
             response = new StatusResponse()
             {
                 Id = foundedTask.AisTaskId,
-                Cid = foundedTask.Cid,
+                Cid = statusCid,
                 Sc = foundedTask.Fs,
                 Rm = "Статус из таблицы Налив КМХ",
                 Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
@@ -437,7 +437,7 @@ namespace BL.Core
             return response;
         }
 
-        private StatusResponse StatusTaskFillOut(string aisId)
+        private StatusResponse StatusTaskFillOut(string aisId, string statusCid)
         {
             FIllOutTaskRepository rep = new FIllOutTaskRepository(DbConString, _logger);
             StatusResponse response = null;
@@ -451,7 +451,7 @@ namespace BL.Core
             response = new StatusResponse()
             {
                 Id = foundedTask.AisTaskId,
-                Cid = foundedTask.Cid,
+                Cid = statusCid,
                 Sc = 0, // TODO: Добавить вычисление статуса заявки по статусам из секций
                 Rm = "Статус из таблицы слива из АЦ",
                 Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
@@ -471,8 +471,9 @@ namespace BL.Core
         /// Попытка отменить заявку в таблице FillInTask
         /// </summary>
         /// <param name="aisId">Идентификатор заявки АИС ТПС</param>
+        /// <param name="cancelCid"></param>
         /// <returns></returns>
-        private CancelResponse CancelTaskInFillIn(string aisId)
+        private CancelResponse CancelTaskInFillIn(string aisId, string cancelCid)
         {
             FIllInTaskRepository rep = new FIllInTaskRepository(DbConString, _logger);
             CancelResponse response = null;
@@ -497,7 +498,7 @@ namespace BL.Core
                         response = new CancelResponse()
                         {
                             Id = foundedTask.AisTaskId,
-                            Cid = foundedTask.Cid,
+                            Cid = cancelCid,
                             R = false,
                             Rm = "Отменено",
                             Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
@@ -511,7 +512,7 @@ namespace BL.Core
                         response = new CancelResponse()
                         {
                             Id = foundedTask.AisTaskId,
-                            Cid = foundedTask.Cid,
+                            Cid = cancelCid,
                             R = true,
                             Rm = "Ошибка взаимодействия с базой данных АСН",
                             Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
@@ -527,7 +528,7 @@ namespace BL.Core
                     response = new CancelResponse()
                     {
                         Id = foundedTask.AisTaskId,
-                        Cid = foundedTask.Cid,
+                        Cid = cancelCid,
                         R = true,
                         Rm = "Заявка уже в работе, либо завершена",
                         Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
@@ -543,8 +544,9 @@ namespace BL.Core
         /// Попытка отменить заявку в таблице FillInMcTask
         /// </summary>
         /// <param name="aisId">Идентификатор заявки АИС ТПС</param>
+        /// <param name="cancelCid"></param>
         /// <returns></returns>
-        private CancelResponse CancelTaskInFillInMc(string aisId)
+        private CancelResponse CancelTaskInFillInMc(string aisId, string cancelCid)
         {
             FIllInMcTaskRepository rep = new FIllInMcTaskRepository(DbConString, _logger);
             CancelResponse response = null;
@@ -567,7 +569,7 @@ namespace BL.Core
                         response = new CancelResponse()
                         {
                             Id = foundedTask.AisTaskId,
-                            Cid = foundedTask.Cid,
+                            Cid = cancelCid,
                             R = false,
                             Rm = "Отменено",
                             Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
@@ -581,7 +583,7 @@ namespace BL.Core
                         response = new CancelResponse()
                         {
                             Id = foundedTask.AisTaskId,
-                            Cid = foundedTask.Cid,
+                            Cid = cancelCid,
                             R = true,
                             Rm = "Ошибка взаимодействия с базой данных АСН",
                             Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
@@ -595,7 +597,7 @@ namespace BL.Core
                     response = new CancelResponse()
                     {
                         Id = foundedTask.AisTaskId,
-                        Cid = foundedTask.Cid,
+                        Cid = cancelCid,
                         R = true,
                         Rm = "Заявка уже в работе, либо завершена",
                         Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
@@ -612,8 +614,9 @@ namespace BL.Core
         /// Попытка отменить заявку в таблице FillOut
         /// </summary>
         /// <param name="aisId">Идентификатор заявки АИС ТПС</param>
+        /// <param name="cancelCid"></param>
         /// <returns></returns>
-        private CancelResponse CancelTaskInFillOut(string aisId)
+        private CancelResponse CancelTaskInFillOut(string aisId, string cancelCid)
         {
             FIllOutTaskRepository rep = new FIllOutTaskRepository(DbConString, _logger);
             CancelResponse response = null;
@@ -638,7 +641,7 @@ namespace BL.Core
                         response = new CancelResponse()
                         {
                             Id = foundedTask.AisTaskId,
-                            Cid = foundedTask.Cid,
+                            Cid = cancelCid,
                             R = false,
                             Rm = "Отменено",
                             Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
@@ -652,7 +655,7 @@ namespace BL.Core
                         response = new CancelResponse()
                         {
                             Id = foundedTask.AisTaskId,
-                            Cid = foundedTask.Cid,
+                            Cid = cancelCid,
                             R = true,
                             Rm = "Ошибка взаимодействия с базой данных АСН",
                             Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
@@ -666,7 +669,7 @@ namespace BL.Core
                     response = new CancelResponse()
                     {
                         Id = foundedTask.AisTaskId,
-                        Cid = foundedTask.Cid,
+                        Cid = cancelCid,
                         R = true,
                         Rm = "Заявка уже в работе, либо завершена",
                         Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
