@@ -61,6 +61,7 @@
     <Compile Include="DTO\Data\StatusDataDto.cs" />
     <Compile Include="DTO\Response\CancelResponseDto.cs" />
     <Compile Include="DTO\Response\StatusResponseDto.cs" />
+    <Compile Include="DTO\Status\EmptyStatusDetailDto.cs" />
     <Compile Include="DTO\Status\FillInMcStatusDetailDto.cs" />
     <Compile Include="DTO\Status\FillInStatusDetailDetailDto.cs" />
     <Compile Include="DTO\Status\FillInStatusDetailDto.cs" />

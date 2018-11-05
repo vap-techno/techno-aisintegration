@@ -683,7 +683,7 @@ namespace BL.Core
         //~Manager()
         //{
         //    _opcService.ValueChanged -= OpcService_ValueChanged;
-        //    _opcService.MonitoringCanceled -= OpcService_MonitoringCanceled;
+        //    _opcService.MonitoringCanceled -= OpcSeTrvice_MonitoringCanceled;
    
         //}
 

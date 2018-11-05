@@ -39,7 +39,11 @@ namespace DAL.Core.TaskMapper
         {
             var dto = new CancelResponseDto {Id = resp.Id, Cid = resp.Cid, R = resp.R, Rm = resp.Rm};
 
-            if (resp.Ts == null) return dto;
+            if (resp.Ts == null)
+            {
+                dto.Ts = new EmptyStatusDetailDto();
+                return dto;
+            }
 
             switch (resp.Ts.GetType().Name)
             {
@@ -76,7 +80,11 @@ namespace DAL.Core.TaskMapper
                 
             };
 
-            if (resp.Ts == null) return dto;
+            if (resp.Ts == null)
+            {
+                dto.Sd = new EmptyStatusDetailDto();
+                return dto;
+            }
 
             switch (resp.Ts.GetType().Name)
             {
@@ -92,7 +100,7 @@ namespace DAL.Core.TaskMapper
                     dto.Sd = Mapper.Map<FillOutStatusDetailDto>(resp.Ts);
                     break;
                 default:
-                    dto.Sd = null;
+                    dto.Sd = new EmptyStatusDetailDto();
                     break;
             }
             return dto;
