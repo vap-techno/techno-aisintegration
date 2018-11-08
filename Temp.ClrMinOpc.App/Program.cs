@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using DAL.InMemory;
 using Graybox.OPC.ServerToolkit.CLRWrapper;
 
 
@@ -22,6 +23,8 @@ namespace Temp.ClrMinOpc.App
         static int tag_count = 2;
         // The TagId identifiers of OPC tags.
         static int[] tag_ids = new int[tag_count];
+
+        private static bool firstStart = false;
 
         static OPCDAServer srv = new OPCDAServer();
 
@@ -43,8 +46,8 @@ namespace Temp.ClrMinOpc.App
                         OPCDAServer.RegisterServer(
                             srv_guid,
                             "Technologia",
-                            "TehcnoAisOpc",
-                            "TAO",
+                            "TehcnoAisIntegration",
+                            "Technologia.AsnOpc.Da",
                             "0.1");
                         return;
                     }
@@ -69,14 +72,21 @@ namespace Temp.ClrMinOpc.App
             srv.Events.ServerReleased += new ServerReleasedEventHandler(Events_ServerReleased);
             // Initialize the OPC server object and the OPC Toolkit.
             srv.Initialize(srv_guid, 50, 50, ServerOptions.NoAccessPaths, '.', 100);
-            
+
             // Create the OPC tags.
             // Create a tag.
-            tag_ids[0] = srv.CreateTag(0, "Node.AIS.Task.Cmd", AccessRights.readWritable, "");
-            tag_ids[1] = srv.CreateTag(1, "Node.AIS.Task.Resposne", AccessRights.readWritable, "");
+            //tag_ids[0] = srv.CreateTag(0, "Node.Task.Cmd", AccessRights.readWritable, "");
+            //tag_ids[1] = srv.CreateTag(1, "Node.Task.Resposne", AccessRights.readWritable, "");
+            srv.CreateTag(0, "Node.Task.Cmd", AccessRights.readWritable, "");
+            srv.CreateTag(1, "Node.Task.Resposne", AccessRights.readWritable, "");
+
 
             // Mark the OPC server COM object as running.
             srv.RegisterClassObject();
+            srv.SetTag(1, "", Quality.Good, FileTime.UtcNow);
+            srv.SetTag(2, "", Quality.Good, FileTime.UtcNow);
+
+
             // Wait until the OPC server is released by the clients.
             // Periodically update tags values while the OPC server is not released.
             while (System.Threading.Interlocked.CompareExchange(ref stop, 1, 1) == 0)
@@ -114,27 +124,52 @@ namespace Temp.ClrMinOpc.App
                     {
 
                         // TODO: Вставить кусок логики, а пока просто передаем вход на выход
-                        Thread.Sleep(3000);
+                        Thread.Sleep(500);
                         
                         string val = e.Values[i].ToString();
                         if (val != String.Empty || val != "")
                         {
                             
-                            MemoryExchange mmc = new MemoryExchange();
-                            var res = mmc.WriteCmd(val);
+                            MemoryExchange mmfCmd = new MemoryExchange(MemoryFileName.Cmd);
+                            MemoryExchange mmfResp = new MemoryExchange(MemoryFileName.Response);
 
-                            Console.WriteLine(res);
+                            var res = mmfCmd.Write(val);
 
-                            // Записываем в тег Response
-                            var resp = mmc.ReadResponse();
-                            Console.WriteLine(resp);
+                            // TODO: Нужен логгер
+                            Console.WriteLine($"Запись в разделяемую память Cmd: {res}");
 
-                            srv.SetTag(2, resp, Quality.Good, FileTime.UtcNow);
+                            // Ожидаем ответа в блокирующем режиме от TAI
+
+                            int maxPeriods = 100; // Максимальное количество периодов перед таймаутом
+                            int pollingPeriod = 100; //
+                            int pollingCounter = 0;
+                            long ticks = 0;
+                            long lastTicks = 0;
+                            var resp = new MmContent();
 
 
+                            // Мониторим буфер Response и сравниваем его содержимое по метке времени, если буфер обновился, то выкидываем новое значение
+                            while (ticks == lastTicks)
+                            {
+                                lastTicks = ticks;
+
+                                if (pollingCounter > maxPeriods) throw new Exception("Превышено время ожидания ответа от TAI");
+                                
+                                // Засыпаем на заданные период и проверяем состояние буфера
+                                Thread.Sleep(pollingPeriod);
+
+                                resp = mmfResp.Read();
+                                ticks = resp.Ticks;
+
+                                pollingCounter++;
+                            }
+
+                            Console.WriteLine($"Ticks = {resp.Ticks}, Content = {resp.Content}");
+
+                            srv.SetTag(2, resp.Content, Quality.Good, FileTime.UtcNow);
 
                             // Стираем тэг
-                            srv.SetTag(1, "", Quality.Good, FileTime.UtcNow);
+                            //srv.SetTag(1, "", Quality.Good, FileTime.UtcNow);
 
                         }
                     }
@@ -160,10 +195,6 @@ namespace Temp.ClrMinOpc.App
             // Signal the main thread, that it's time to exit.
             System.Threading.Interlocked.Exchange(ref stop, 1);
         }
-
-
-
-
 
     }
 }
