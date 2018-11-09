@@ -15,13 +15,14 @@ namespace Temp.MonitorMemoryFromOpcDaServer.App
 
         static void Main(string[] args)
         {
+            // Инициализация MMF-файлов
             MemoryExchange mmfCmd = new MemoryExchange(MemoryFileName.Cmd);
             MemoryExchange mmfResp = new MemoryExchange(MemoryFileName.Response);
 
-            // Ожидаем ответа в блокирующем режиме от TAI
-
+            // Период опроса MMF-файлов
             const int pollingPeriod = 100;
 
+            // Метка времени последнего опроса
             long lastTicks = 0;
 
             // Мониторим буфер Response и сравниваем его содержимое по метке времени, если буфер обновился, то выкидываем новое значение

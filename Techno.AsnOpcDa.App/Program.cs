@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using DAL.InMemory;
 using Graybox.OPC.ServerToolkit.CLRWrapper;
+using Serilog;
 
 
 namespace Temp.ClrMinOpc.App
@@ -33,6 +34,23 @@ namespace Temp.ClrMinOpc.App
         [MTAThread]
         static void Main(string[] args)
         {
+
+            // Создаем директорию логгера, если ее не существует
+            string pathDir = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents", "Asn OPC Log Files");
+            Directory.CreateDirectory(pathDir);
+
+            // Инициализация логгера
+            var path = Path.Combine(pathDir, "ClrMinOpc.log");
+            
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.ColoredConsole()
+                .WriteTo.File(path)
+                .CreateLogger();
+
+            Log.Information("Запускаем логгер");
+
+
             // This will be the CLSID and the AppID of our COM-object.
             Guid srv_guid = new Guid("3464aeca-ba04-4343-9a01-944d8e1aa873");
             // Parse the command line args
@@ -45,9 +63,9 @@ namespace Temp.ClrMinOpc.App
                     {
                         OPCDAServer.RegisterServer(
                             srv_guid,
-                            "Technologia",
+                            "Techno",
                             "TehcnoAisIntegration",
-                            "Technologia.AsnOpc.Da",
+                            "Techno.AsnOpc.Da",
                             "0.1");
                         return;
                     }
@@ -64,19 +82,15 @@ namespace Temp.ClrMinOpc.App
                     return;
                 }
             }
-            // Create an object of the OPC Server class.
-            //OPCDAServer srv = new OPCDAServer();
-
+            
             // Advise for the OPC Toolkit events.
             srv.Events.WriteItems += new WriteItemsEventHandler(Events_WriteItems);
             srv.Events.ServerReleased += new ServerReleasedEventHandler(Events_ServerReleased);
             // Initialize the OPC server object and the OPC Toolkit.
-            srv.Initialize(srv_guid, 50, 50, ServerOptions.NoAccessPaths, '.', 100);
+            srv.Initialize(srv_guid, 50, 50, ServerOptions.NoAccessPaths, '.', 50);
 
             // Create the OPC tags.
             // Create a tag.
-            //tag_ids[0] = srv.CreateTag(0, "Node.Task.Cmd", AccessRights.readWritable, "");
-            //tag_ids[1] = srv.CreateTag(1, "Node.Task.Resposne", AccessRights.readWritable, "");
             srv.CreateTag(0, "Node.Task.Cmd", AccessRights.readWritable, "");
             srv.CreateTag(1, "Node.Task.Resposne", AccessRights.readWritable, "");
 
@@ -92,13 +106,13 @@ namespace Temp.ClrMinOpc.App
             while (System.Threading.Interlocked.CompareExchange(ref stop, 1, 1) == 0)
             {
 
-                System.Threading.Thread.Sleep(100);
+                //System.Threading.Thread.Sleep(100);
                 // Begin the update of the OPC server cache.
-                srv.BeginUpdate();
+                //srv.BeginUpdate();
 
                 // Finish the update of the OPC server cache. We pass false,
                 // because its unnecessary for this update to be synchronous.
-                srv.EndUpdate(false);
+                //srv.EndUpdate(false);
             }
             // Mark the OPC server COM object as stopped.
             srv.RevokeClassObject();
@@ -124,7 +138,7 @@ namespace Temp.ClrMinOpc.App
                     {
 
                         // TODO: Вставить кусок логики, а пока просто передаем вход на выход
-                        Thread.Sleep(500);
+                        Thread.Sleep(200);
                         
                         string val = e.Values[i].ToString();
                         if (val != String.Empty || val != "")
@@ -135,12 +149,11 @@ namespace Temp.ClrMinOpc.App
 
                             var res = mmfCmd.Write(val);
 
-                            // TODO: Нужен логгер
-                            Console.WriteLine($"Запись в разделяемую память Cmd: {res}");
+                           Log.Information("Запись в MMF память Cmd: {res}", res);
 
                             // Ожидаем ответа в блокирующем режиме от TAI
 
-                            int maxPeriods = 100; // Максимальное количество периодов перед таймаутом
+                            int maxPeriods = 50; // Максимальное количество периодов перед таймаутом
                             int pollingPeriod = 100; //
                             int pollingCounter = 0;
                             long ticks = 0;
@@ -164,18 +177,20 @@ namespace Temp.ClrMinOpc.App
                                 pollingCounter++;
                             }
 
-                            Console.WriteLine($"Ticks = {resp.Ticks}, Content = {resp.Content}");
+                            
+                            Log.Debug("Принят пакет с меткой времени {Ticks}  и содержимымым: \n {Content}", resp.Ticks, resp.Content);
 
                             srv.SetTag(2, resp.Content, Quality.Good, FileTime.UtcNow);
 
                             // Стираем тэг
-                            //srv.SetTag(1, "", Quality.Good, FileTime.UtcNow);
+                            srv.SetTag(1, "", Quality.Good, FileTime.UtcNow);
 
                         }
                     }
                 }
                 catch (Exception ex)
                 {
+                    Log.Error(ex.Message);
                     e.Errors[i] = (ErrorCodes)System.Runtime.InteropServices.Marshal.GetHRForException(ex);
                     e.ItemIds[i].TagId = 0;
                     e.MasterError = ErrorCodes.False;

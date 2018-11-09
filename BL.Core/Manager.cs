@@ -11,6 +11,7 @@ using AutoMapper;
 using DAL.Core.TaskMapper;
 using DAL.Entity;
 using DAL.Entity.Status;
+using DAL.InMemory;
 using DAL.UnitOfWork;
 using Newtonsoft.Json;
 using Serilog;
@@ -20,37 +21,29 @@ namespace BL.Core
     public class Manager 
     {
         //TODO: Во всех методах убрать создание экземпляра репозитория, вынести их в Fields
-        
-        #region Fields
 
-        private OpcService _opcService;
-        private TaskMapper _taskMapper;
+        #region Fields
+    
+        private readonly TaskMapper _taskMapper;
         private readonly ILogger _logger;
 
         #endregion
 
         #region Properties
-        /// <summary>
-        /// URL OPC-сервера
-        /// </summary>
-        public Uri OpcServerUri { get; }
-
+        
         /// <summary>
         /// Строка подключения к базе данных
         /// </summary>
         public string DbConString { get; }
 
-
-
         #endregion
 
         #region Constructors
 
-        public Manager(string dbConString, TaskMapper mapper, OpcService opcService,  ILogger logger)
+        public Manager(string dbConString, TaskMapper mapper, ILogger logger)
         {
             DbConString = dbConString;
             _logger = logger;
-            _opcService = opcService;
             _taskMapper = mapper;
 
             // Инициализация
@@ -68,19 +61,20 @@ namespace BL.Core
 
         #endregion ctor
 
-        private async void Init()
+        private void Init()
         {
-
-            // Подписываемся на события
-            _opcService.Connect();
-            _opcService.ValueChanged += OpcService_ValueChanged;
+            // TODO: Вставить логику или удалить
         }
 
-        private void OpcService_ValueChanged(object sender, TagEventArgs<string> e)
+        /// <summary>
+        /// Обработать JSON-команду с заявками
+        /// </summary>
+        /// <param name="json">JSON-команда</param>
+        /// <returns></returns>
+        public string HandleRequest(string json)
         {
-    
             // Преобразуем JSON-строку в список заявок формата DTO
-            List<IRequestDto> cmdDtoList = AisJConverter.Deserialize(e.Tag.Value, _logger);
+            List<IRequestDto> cmdDtoList = AisJConverter.Deserialize(json, _logger);
 
             if (cmdDtoList != null)
             {
@@ -104,9 +98,10 @@ namespace BL.Core
 
                 // Очищаем пустые команды и пишем в OPC-сервер ответы
                 respDtoList.RemoveAll(item => item == null);
-                _opcService.WriteResponseAsync(JsonConvert.SerializeObject(respDtoList));
+                return JsonConvert.SerializeObject(respDtoList);
             }
 
+            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос"});
         }
 
         #region Task Handlers
@@ -682,13 +677,6 @@ namespace BL.Core
         }
 
         #endregion
-
-        //~Manager()
-        //{
-        //    _opcService.ValueChanged -= OpcService_ValueChanged;
-        //    _opcService.MonitoringCanceled -= OpcSeTrvice_MonitoringCanceled;
-   
-        //}
 
     }
 }

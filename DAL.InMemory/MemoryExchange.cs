@@ -16,7 +16,7 @@ namespace DAL.InMemory
     public class MemoryExchange : IDisposable
     {
         private const string CMD_FILENAME = "Cmd.json";
-        private const long FILE_SIZE = 4096;
+        private const long FILE_SIZE = 16386;
         private const string RESPONSE_FILENAME = "Response.json";
 
         private readonly string _fileName;
@@ -100,8 +100,8 @@ namespace DAL.InMemory
                 resp.Ticks = _writeAccessor.ReadInt64(4);
 
                 // TODO: Нужен логгер
-                Console.WriteLine(
-                    $"В буфере {_fileName} находится {resp.Size} байт, Метка времени {resp.Ticks} ");
+                //Console.WriteLine(
+                //    $"В буфере {_fileName} находится {resp.Size} байт, Метка времени {resp.Ticks} ");
 
                 // Считываем байтовый массив контента
                 byte[] buffer = new byte[resp.Size];
@@ -111,7 +111,7 @@ namespace DAL.InMemory
                 resp.Content = Encoding.UTF8.GetString(buffer);
 
                 // TODO: Нужен логгер
-                Console.WriteLine(resp.Content);
+                //Console.WriteLine(resp.Content);
 
                 return resp;
             }

@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using AisOpcClient.Lib;
 using DAL.Core.TaskMapper;
+using DAL.InMemory;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Exceptions;
 using Newtonsoft.Json.Linq;
+
 
 namespace TechnoAisIntegration.App
 {
@@ -82,10 +85,6 @@ namespace TechnoAisIntegration.App
                 .Enrich.WithExceptionDetails()
                 .CreateLogger();
             
-            // Инициализация OPC-клиента
-            var opcUrl = new Uri("opc.tcp://localhost:55000");
-            var opcService = new OpcService(opcUrl, Log.Logger);
-
             // Mapper
             var taskMapper = new TaskMapper();
 
@@ -107,14 +106,52 @@ namespace TechnoAisIntegration.App
                 Visible = true,
                 //ContextMenu = menu,
                 Icon = File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Asterisk,
-                Text = @"Technologia AisTPS Integration"
+                Text = @"Techno.AisIntegration"
             };
 
             icon.DoubleClick += Icon_DoubleClick;
  
             ShowWindow(GetConsoleWindow(), 0); // На старте окно скрываем
 
-            var manager = new BL.Core.Manager(conString, taskMapper, opcService, Log.Logger);
+            var manager = new BL.Core.Manager(conString, taskMapper, Log.Logger);
+
+            // Инициализация MMF-файлов
+            MemoryExchange mmfCmd = new MemoryExchange(MemoryFileName.Cmd);
+            MemoryExchange mmfResp = new MemoryExchange(MemoryFileName.Response);
+
+            // Период опроса MMF-файлов
+            const int pollingPeriod = 100;
+
+            // Метка времени последнего опроса
+            long lastTicks = 0;
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Task.Factory.StartNew(async () =>
+            {
+                // Мониторим буфер Response и сравниваем его содержимое по метке времени, если буфер обновился, то выкидываем новое значение
+                while (!cts.Token.IsCancellationRequested)
+                {
+
+                    await Task.Delay(pollingPeriod, cts.Token);
+
+                    // Засыпаем на заданные период и проверяем состояние буфера
+                    //Thread.Sleep(pollingPeriod);
+
+                    var req = mmfCmd.Read();
+                    var ticks = req.Ticks;
+
+                    // Если значение в буфере команды обновилось - отправляем ответ
+                    if (ticks != lastTicks)
+                    {
+
+                        Log.Information("В MMF файле Cmd.json появилась новая команда: {Content}", req.Content);
+
+                        var response = manager.HandleRequest(req.Content);
+                        mmfResp.Write(response);
+                        lastTicks = ticks;
+                    }
+                }
+            },cts.Token,TaskCreationOptions.LongRunning,TaskScheduler.Default);
 
             Application.Run();
 

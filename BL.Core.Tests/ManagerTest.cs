@@ -44,7 +44,7 @@ namespace BL.Core.Tests
 
             opcService = new OpcService(opcUrl, Log.Logger);
 
-            manager = new Manager(conString, taskMapper, opcService, Log.Logger);
+            //manager = new Manager(conString, taskMapper, opcService, Log.Logger);
         }
 
 
