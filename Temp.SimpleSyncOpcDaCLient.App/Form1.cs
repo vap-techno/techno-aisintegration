@@ -7,9 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Hylasoft.Opc.Common;
-using Hylasoft.Opc.Da;
 using System.IO;
+using TitaniumAS.Opc.Client.Common;
+using TitaniumAS.Opc.Client.Da;
+
 
 namespace Temp.SimpleSyncOpcDaCLient.App
 {
@@ -22,16 +23,33 @@ namespace Temp.SimpleSyncOpcDaCLient.App
 
         private void button2_Click(object sender, EventArgs e)
         {
-            using (var client = new DaClient(new Uri("opcda://Technologia.AsnOpc.Da.0.1")))
+           
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Uri url = UrlBuilder.Build("Techno.AsnOpc.Da.0.1");
+            using (var server = new OpcDaServer(url))
             {
-                client.Connect();
+                // Connect to the server first.
+                server.Connect();
 
-                string fileName = "FillInValidCmd.json";
-                string path = Path.Combine(@"C:\Temp\", fileName);
+                OpcDaGroup group = server.AddGroup("MyGroup");
+                group.IsActive = true;
 
-                string json = File.ReadAllText(path);
+                var cmd = new OpcDaItemDefinition
+                {
+                    ItemId = "Node.Task.Cmd",
+                    IsActive = true
+                };
+                var response = new OpcDaItemDefinition
+                {
+                    ItemId = "Node.Task.Response",
+                    IsActive = true
+                };
 
-                client.Write("Node.Task.Cmd", json);
+                OpcDaItemValue[] values = group.Read(group.Items, OpcDaDataSource.Device);
+
 
             }
         }

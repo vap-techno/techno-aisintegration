@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
 using AisJson.Lib.DTO;
 using AisJson.Lib.DTO.Abstract;
 using AisJson.Lib.DTO.Response;
@@ -10,6 +11,7 @@ using AisOpcClient.Lib;
 using AutoMapper;
 using DAL.Core.TaskMapper;
 using DAL.Entity;
+using DAL.Entity.Abstract;
 using DAL.Entity.Status;
 using DAL.InMemory;
 using DAL.UnitOfWork;
@@ -27,10 +29,18 @@ namespace BL.Core
         private readonly TaskMapper _taskMapper;
         private readonly ILogger _logger;
 
+        private const int FS_NONE = 0;
+        private const int FS_STANDBY = 1;
+        private const int FS_INPROGRESS = 2;
+        private const int FS_CANCELED = 3;
+        private const int FS_ERROR = 4;
+        private const int FS_NOTFOUND = 5;
+        private const int FS_COMPLETED = 6;
+
         #endregion
 
         #region Properties
-        
+
         /// <summary>
         /// Строка подключения к базе данных
         /// </summary>
@@ -76,7 +86,7 @@ namespace BL.Core
             // Преобразуем JSON-строку в список заявок формата DTO
             List<IRequestDto> cmdDtoList = AisJConverter.Deserialize(json, _logger);
 
-            if (cmdDtoList != null)
+            if (cmdDtoList != null && cmdDtoList.Count > 0)
             {
                 // Очищаем пустые команды
                 cmdDtoList.RemoveAll(item => item == null);
@@ -98,10 +108,99 @@ namespace BL.Core
 
                 // Очищаем пустые команды и пишем в OPC-сервер ответы
                 respDtoList.RemoveAll(item => item == null);
+
+                if (respDtoList.Count == 0) return JsonConvert.SerializeObject(new { Status = "Запрос обработан", Ts = DateTime.Now });
                 return JsonConvert.SerializeObject(respDtoList);
             }
 
-            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос"});
+            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос", Ts = DateTime.Now });
+        }
+
+        /// <summary>
+        /// Получить стаутс задания исходя из статусов секций
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        public int GetScField(FillInTask task)
+        {
+            try
+            {
+                // Если хотя бы один "В обработке", то все возвращаем "В обработке"
+                bool inProgress = task.Details.Any((item) => item.Fs == FS_INPROGRESS);
+                if (inProgress) return FS_INPROGRESS;
+
+                // Равные статусы по всем секциям = статус задания
+                for (int i = FS_NONE; i <= FS_COMPLETED; i++)
+                {
+                    bool res = task.Details.All((item) => item.Fs == i);
+                    if (res) return i;
+                }
+
+                // Если какая-то секция отменена, ошибочна или выполнена, а какая-то еще принята к исполнению - то заявка все еще в работе
+                bool stillProgress = task.Details.Any((item) => item.Fs == FS_STANDBY) || task.Details.Any((item) => item.Fs >= FS_COMPLETED);
+                if (stillProgress) return FS_INPROGRESS;
+
+                // Если все секции завершились, то статус заявки выдаем по наименьшей
+                bool completed = task.Details.Any((item) => item.Fs >= FS_CANCELED);
+                if (completed)
+                {
+                    var fsList = new List<int>();
+                    task.Details.ForEach((item) => fsList.Add(item.Fs));
+                    return fsList.Min();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Warning("Не получилось получить статус заявки. Ошибка: ", e);
+                return FS_NOTFOUND;
+            }
+
+            // Если что-то не предусмотрел, то возвращаем "Не найдено, или не может быть предоставлен"
+            return FS_NOTFOUND; 
+        }
+
+        /// <summary>
+        /// Получить стаутс задания исходя из статусов секций
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        public int GetScField(FillOutTask task)
+        {
+
+            try
+            {
+                // Если хотя бы один "В обработке", то все возвращаем "В обработке"
+                bool inProgress = task.Details.Any((item) => item.Fs == FS_INPROGRESS);
+                if (inProgress) return FS_INPROGRESS;
+
+                // Равные статусы по всем секциям = статус задания
+                for (int i = FS_NONE; i <= FS_COMPLETED; i++)
+                {
+                    bool res = task.Details.All((item) => item.Fs == i);
+                    if (res) return i;
+                }
+
+                // Если какая-то секция отменена, ошибочна или выполнена, а какая-то еще принята к исполнению - то заявка все еще в работе
+                bool stillProgress = task.Details.Any((item) => item.Fs == FS_STANDBY) || task.Details.Any((item) => item.Fs >= FS_COMPLETED);
+                if (stillProgress) return FS_INPROGRESS;
+
+                // Если все секции завершились, то статус заявки выдаем по наименьшей
+                bool completed = task.Details.Any((item) => item.Fs >= FS_CANCELED);
+                if (completed)
+                {
+                    var fsList = new List<int>();
+                    task.Details.ForEach((item) => fsList.Add(item.Fs));
+                    return fsList.Min();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Warning("Не получилось получить статус заявки. Ошибка: ", e);
+                return FS_NOTFOUND;
+            }
+
+            // Если что-то не предусмотрел, то возвращаем "Не найдено, или не может быть предоставлен"
+            return FS_NOTFOUND;
         }
 
         #region Task Handlers
@@ -161,8 +260,7 @@ namespace BL.Core
             }
 
             // Еслии записи в БД не найдено - добавляем запись со статусом к "Исполнению"
-            // TODO: Убрать магическое число
-            task.Details.ForEach(d => d.Fs = 1);
+            task.Details.ForEach(d => d.Fs = FS_STANDBY);
             var id = rep.Create(task);
 
             // Записываем в лог результат
@@ -225,8 +323,7 @@ namespace BL.Core
             }
 
             // Еслии записи в БД не найдено - добавляем запись со статусом к "Исполнению"
-            // TODO: Убрать магическое число
-            task.Details.ForEach(d => d.Fs = 1);
+            task.Details.ForEach(d => d.Fs = FS_STANDBY);
             var id = rep.Create(task);
 
             // Записываем в лог результат
@@ -351,7 +448,7 @@ namespace BL.Core
                                 {
                                     Id = aisId,
                                     Cid = dto.Cid,
-                                    Sc = 5,
+                                    Sc = FS_NOTFOUND,
                                     Rm = "Заявки не существует"
                                 };
 
@@ -397,7 +494,7 @@ namespace BL.Core
             {
                 Id = foundedTask.AisTaskId,
                 Cid = statusCid,
-                Sc = 0, // TODO: Добавить вычисление статуса заявки по статусам из секций
+                Sc = GetScField(foundedTask),
                 Rm = "Статус из таблицы налива в АЦ",
                 Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
             };
@@ -447,7 +544,7 @@ namespace BL.Core
             {
                 Id = foundedTask.AisTaskId,
                 Cid = statusCid,
-                Sc = 0, // TODO: Добавить вычисление статуса заявки по статусам из секций
+                Sc = GetScField(foundedTask),
                 Rm = "Статус из таблицы слива из АЦ",
                 Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
             };
@@ -479,13 +576,11 @@ namespace BL.Core
             if (foundedTask !=null && foundedTask.FillInTaskId > 0)
             {
                 // Заявку можно отменить, если все секции заявки в статусе "К исполнению"
-                // TODO: Убрать магические числа
-                var foundedTaskDetail = foundedTask.Details.Find(item => item.Fs > 1);
+                var foundedTaskDetail = foundedTask.Details.Find(item => item.Fs > FS_STANDBY);
                 if (foundedTaskDetail == null)
                 {
                     // Помечаем все секции в "Отменено"
-                    // TODO: Убрать магические числа
-                    foundedTask.Details.ForEach(item => item.Fs = 3);
+                    foundedTask.Details.ForEach(item => item.Fs = FS_CANCELED);
 
                     if (rep.Update(foundedTask))
                     {
@@ -552,12 +647,10 @@ namespace BL.Core
             if (foundedTask != null && foundedTask.FillInMcTaskId > 0)
             {
                 // Заявку можно отменить, если она находится в статусе "К исполнению"
-                // TODO: Убрать магические числа
-                if (foundedTask.Fs == 1)
+                if (foundedTask.Fs == FS_STANDBY)
                 {
                     // Помечаем статус в "Отменено"
-                    // Todo: Убрать магическое число
-                    foundedTask.Fs = 3;
+                    foundedTask.Fs = FS_CANCELED;
                     if (rep.Update(foundedTask))
                     {
                         // Формируем Entity ответа
@@ -622,13 +715,11 @@ namespace BL.Core
             if (foundedTask != null && foundedTask.FillOutTaskId > 0)
             {
                 // Заявку можно отменить, если все секции заявки в статусе "К исполнению"
-                // TODO: Убрать магические числа
-                var foundedTaskDetail = foundedTask.Details.Find(item => item.Fs > 1);
+                var foundedTaskDetail = foundedTask.Details.Find(item => item.Fs > FS_STANDBY);
                 if (foundedTaskDetail == null)
                 {
                     // Помечаем все секции в "Отменено"
-                    // TODO: Убрать магические числа
-                    foundedTask.Details.ForEach(item => item.Fs = 3);
+                    foundedTask.Details.ForEach(item => item.Fs = FS_CANCELED);
 
                     if (rep.Update(foundedTask))
                     {
@@ -677,6 +768,7 @@ namespace BL.Core
         }
 
         #endregion
+
 
     }
 }

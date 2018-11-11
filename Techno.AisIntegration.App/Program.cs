@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using AisOpcClient.Lib;
 using DAL.Core.TaskMapper;
 using DAL.InMemory;
 using Newtonsoft.Json;
@@ -52,6 +51,9 @@ namespace TechnoAisIntegration.App
 
         static void Main(string[] args)
         {
+
+            Console.WriteLine("---------- Транслятор TechnoAisIntegration.App ---------");
+
             #region Configuration
             // Выбираем стадию разработки dev или prod
             var cfgFileName = "TAIConfig.json";
@@ -134,20 +136,24 @@ namespace TechnoAisIntegration.App
 
                     await Task.Delay(pollingPeriod, cts.Token);
 
-                    // Засыпаем на заданные период и проверяем состояние буфера
-                    //Thread.Sleep(pollingPeriod);
-
                     var req = mmfCmd.Read();
                     var ticks = req.Ticks;
 
                     // Если значение в буфере команды обновилось - отправляем ответ
-                    if (ticks != lastTicks)
+                    if (ticks > lastTicks)
                     {
 
                         Log.Information("В MMF файле Cmd.json появилась новая команда: {Content}", req.Content);
 
-                        var response = manager.HandleRequest(req.Content);
-                        mmfResp.Write(response);
+                        if (req.Content.ToLower() != "ping")
+                        { 
+                            var response = manager.HandleRequest(req.Content);
+                            mmfResp.Write(response);
+                        }
+                        else
+                        {
+                            mmfResp.Write("pong");
+                        }
                         lastTicks = ticks;
                     }
                 }
