@@ -272,7 +272,7 @@ namespace Techno.AsnOpcDa.App
 
                             Log.Debug("Принят пакет с меткой времени {Ticks}  и содержимымым: \n {Content}", resp.Ticks, resp.Content);
 
-                            srv.SetTag(TAG_CMD, "", Quality.Bad, FileTime.UtcNow, ErrorCodes.Ok);
+                            srv.SetTag(TAG_CMD, "", Quality.Good, FileTime.UtcNow, ErrorCodes.Ok);
 
                             srv.BeginUpdate();
                             srv.SetTag(TAG_RESP, resp.Content, Quality.Good, FileTime.UtcNow, ErrorCodes.Ok);

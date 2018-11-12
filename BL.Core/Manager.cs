@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using AisJson.Lib.DTO;
 using AisJson.Lib.DTO.Abstract;
 using AisJson.Lib.DTO.Response;
@@ -25,6 +26,8 @@ namespace BL.Core
         //TODO: Во всех методах убрать создание экземпляра репозитория, вынести их в Fields
 
         #region Fields
+
+        private const int sleep = 10;
     
         private readonly TaskMapper _taskMapper;
         private readonly ILogger _logger;
@@ -98,6 +101,7 @@ namespace BL.Core
                     if (!dto.Validate())
                     {
                         _logger.Warning("Команда {Cmd} CID = {Cid} не прошла валидацию", dto.Cmd, dto.Cid);
+                        Thread.Sleep(sleep);
                     }
                     else
                     {
@@ -113,7 +117,7 @@ namespace BL.Core
                 return JsonConvert.SerializeObject(respDtoList);
             }
 
-            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос", Ts = DateTime.Now });
+            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос", ErrCode = -1073479676, Ts = DateTime.Now });
         }
 
         /// <summary>
@@ -152,6 +156,7 @@ namespace BL.Core
             catch (Exception e)
             {
                 _logger.Warning("Не получилось получить статус заявки. Ошибка: ", e);
+                Thread.Sleep(sleep);
                 return FS_NOTFOUND;
             }
 
@@ -196,6 +201,7 @@ namespace BL.Core
             catch (Exception e)
             {
                 _logger.Warning("Не получилось получить статус заявки. Ошибка: ", e);
+                Thread.Sleep(sleep);
                 return FS_NOTFOUND;
             }
 
@@ -256,6 +262,7 @@ namespace BL.Core
             if (foundedTask != null)
             {
                 _logger.Warning("Заявка НАЛИВ АЦ. Заявка ID = {AisTaskId} CID = {Cid} уже существует в базе данных ", task.AisTaskId, task.Cid);
+                Thread.Sleep(sleep);
                 return null;
             }
 
@@ -265,8 +272,7 @@ namespace BL.Core
 
             // Записываем в лог результат
             _logger.Information("Заявка НАЛИВ АЦ. Заявка ID = {AisTaskId} CID = {Cid} добавлена к исполнению, ID записи = {id}", task.AisTaskId, task.Cid, id);
-            
-
+            Thread.Sleep(sleep);
             return null;
         }
 
@@ -288,6 +294,7 @@ namespace BL.Core
             if (foundedTask != null)
             {
                 _logger.Warning("Заявка НАЛИВ КМХ. Заявка ID = {AisTaskId} CID = {Cid} уже существует в базе данных ", task.AisTaskId, task.Cid);
+                Thread.Sleep(sleep);
                 return null;
             }
 
@@ -297,6 +304,7 @@ namespace BL.Core
 
             // Записываем в лог результат
             _logger.Information("Заявка НАЛИВ КМХ. Заявка ID = {AisTaskId} CID = {Cid} добавлена к исполнению, ID записи = {id}", task.AisTaskId, task.Cid, id);
+            Thread.Sleep(sleep);
 
             return null;
         }
@@ -319,6 +327,7 @@ namespace BL.Core
             if (foundedTask != null)
             {
                 _logger.Warning("Заявка СЛИВ АЦ. Заявка ID = {AisTaskId} CID = {Cid} уже существует в базе данных ", task.AisTaskId, task.Cid);
+                Thread.Sleep(sleep);
                 return null;
             }
 
@@ -328,6 +337,7 @@ namespace BL.Core
 
             // Записываем в лог результат
             _logger.Information("Заявка СЛИВ АЦ. Заявка ID = {AisTaskId} CID = {Cid} добавлена к исполнению, ID записи = {id}", task.AisTaskId, task.Cid, id);
+            Thread.Sleep(sleep);
 
             return null;
         }
@@ -382,6 +392,7 @@ namespace BL.Core
                                 
                                 // Если заявки не обнаружено ни в одной из таблице - формируем сообщение в лог
                                 _logger.Warning("Заявка на ОТМЕНУ. Заявка на отмену с ID = {aisId} не найдена", aisId);
+                                Thread.Sleep(sleep);
                             }
                         }
                     }
@@ -400,6 +411,7 @@ namespace BL.Core
             }
 
             _logger.Warning("Заявка на ОТМЕНУ. Заявка с CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", task.Cid);
+            Thread.Sleep(sleep);
             // TODO: Вернуть класс с флагом ошибки
             return null;
         }
@@ -453,6 +465,7 @@ namespace BL.Core
                                 };
 
                                 _logger.Warning("Заявка СТАТУС. Заявка на статус с ID = {aisId} не найдена", aisId);
+                                Thread.Sleep(sleep);
                             }
                         }
                     }
@@ -471,6 +484,7 @@ namespace BL.Core
             }
 
             _logger.Warning("Заявка СТАТУС. Заявка на статус с CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", task.Cid);
+            Thread.Sleep(sleep);
 
             return null;
         }
@@ -500,6 +514,7 @@ namespace BL.Core
             };
 
             _logger.Information("Команда на СТАТУС. Заявка CID = {Cid} из таблицы НАЛИВ АЦ", foundedTask.Cid);
+            Thread.Sleep(sleep);
 
             return response;
         }
@@ -525,6 +540,7 @@ namespace BL.Core
             };
 
             _logger.Information("Команда на СТАТУС. Заявка CID = {Cid} из таблицы НАЛИВ КМХ", foundedTask.Cid);
+            Thread.Sleep(sleep);
 
             return response;
         }
@@ -550,6 +566,7 @@ namespace BL.Core
             };
 
             _logger.Information("Команда на СТАТУС. Заявка CID = {Cid} из таблицы СЛИВ АЦ", foundedTask.Cid);
+            Thread.Sleep(sleep);
 
             return response;
         }
@@ -595,6 +612,7 @@ namespace BL.Core
                         };
 
                         _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из НАЛИВ АЦ отменена", foundedTask.Cid);
+                        Thread.Sleep(sleep);
                     }
                     else
                     {
@@ -609,7 +627,8 @@ namespace BL.Core
                         };
 
                         _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
-                        
+                        Thread.Sleep(sleep);
+
                     }
                 }
                 else
@@ -624,6 +643,7 @@ namespace BL.Core
                         Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
                     };
                     _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} из НАЛИВ АЦ, отказ - заявка в работе или завершена", foundedTask.Cid);
+                    Thread.Sleep(sleep);
                 }
             }
             
@@ -664,6 +684,7 @@ namespace BL.Core
                         };
 
                         _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из НАЛИВ КМХ отменена", foundedTask.Cid);
+                        Thread.Sleep(sleep);
                     }
                     else
                     {
@@ -677,6 +698,7 @@ namespace BL.Core
                             Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
                         };
                         _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
+                        Thread.Sleep(sleep);
                     }
                 }
                 else
@@ -691,6 +713,7 @@ namespace BL.Core
                         Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
                     };
                     _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} из НАЛИВ КМХ, отказ - заявка в работе или завершена", foundedTask.Cid);
+                    Thread.Sleep(sleep);
                 }
             }
 
@@ -734,6 +757,7 @@ namespace BL.Core
                         };
 
                         _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из СЛИВ АЦ отменена", foundedTask.Cid);
+                        Thread.Sleep(sleep);
                     }
                     else
                     {
@@ -747,6 +771,7 @@ namespace BL.Core
                             Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
                         };
                         _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
+                        Thread.Sleep(sleep);
                     }
                 }
                 else
@@ -761,6 +786,7 @@ namespace BL.Core
                         Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
                     };
                     _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} из СЛИВ АЦ, отказ - заявка в работе или завершена", foundedTask.Cid);
+                    Thread.Sleep(sleep);
                 }
             }
 

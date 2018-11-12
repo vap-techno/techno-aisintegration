@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Techno.AsnOpcDa.App")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Techno.AsnOpcServer.App")]
+[assembly: AssemblyDescription("OPC DA Server for Techno ASN")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Veshtemov")]
-[assembly: AssemblyProduct("Techno.AsnOpcDa.App")]
+[assembly: AssemblyProduct("Techno.AsnOpcServer.App")]
 [assembly: AssemblyCopyright("Copyright © Veshtemov 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -17,10 +17,10 @@ using System.Runtime.InteropServices;
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
 // COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
+[assembly: ComVisible(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("25EB15E5-9EBF-4B81-AF2E-B843C41DC616")]
+[assembly: Guid("bca622bc-2c07-41d1-ad6b-bbb39844c599")]
 
 // Version information for an assembly consists of the following four values:
 //

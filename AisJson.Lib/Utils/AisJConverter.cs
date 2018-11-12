@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using AisJson.Lib.DTO.Abstract;
 using AisJson.Lib.DTO.Task;
 using AisJson.Lib.DTO;
@@ -54,6 +55,7 @@ namespace AisJson.Lib.Utils
 
                         default:
                             logger.Warning("Неизвестная команда {c}", c);
+                            Thread.Sleep(5);
                             break;
                     }
                 }
@@ -61,6 +63,7 @@ namespace AisJson.Lib.Utils
             catch (Exception e)
             {
                 logger.Warning("Неверный JSON-формат команды {e}", e);
+                Thread.Sleep(5);
             }
             return lst;
         }

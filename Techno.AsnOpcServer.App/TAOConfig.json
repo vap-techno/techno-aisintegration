@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "DbName": "TestDapper",
+    "Provider": "SQLEXPRESS",
+    "LogFile": "dev_TechnoAsnOpcDa.log"
+  },
+  "prod": {
+    "DbName": "AisIntegration",
+    "Provider": "SQLEXPRESS",
+    "LogFile": "prod_TehcnoAsnOpcDa.log"
+  }
+}
