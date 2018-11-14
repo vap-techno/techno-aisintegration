@@ -32,6 +32,7 @@ namespace BL.Core
         private readonly TaskMapper _taskMapper;
         private readonly ILogger _logger;
 
+        // Коды статусов поста налива
         private const int FS_NONE = 0;
         private const int FS_STANDBY = 1;
         private const int FS_INPROGRESS = 2;
@@ -66,7 +67,7 @@ namespace BL.Core
             }
             catch (Exception e)
             {
-                _logger.Error("Не инициализируется менедежер. {e}", e);
+                _logger.Error(e,"Не инициализируется менедежер.");
                 throw;
             }
             
@@ -96,23 +97,36 @@ namespace BL.Core
 
                 // Обрабатываем все команды
                 List<IResponseDto> respDtoList = new List<IResponseDto>();
-                cmdDtoList.ForEach(dto =>
+
+                // Валидация команд
+                var isTasksValid = cmdDtoList.All(dto =>
                 {
                     if (!dto.Validate())
                     {
                         _logger.Warning("Команда {Cmd} CID = {Cid} не прошла валидацию", dto.Cmd, dto.Cid);
                         Thread.Sleep(sleep);
                     }
-                    else
-                    {
-                        var hList = HandleTask(dto);
-                        hList?.ForEach(item => respDtoList.Add(item));
-                    }
+
+                    return dto.Validate();
+                });
+
+                // Если одна из завявок не прошла валидацию, то возвращаем ошибку
+                if (!isTasksValid)
+                    return JsonConvert.SerializeObject(new
+                        {Error = "Команда не прошла валидацию", ErrCode = -2147024809, Ts = DateTime.Now});
+
+
+                // После полной валидации обрабатываем заявки        
+                cmdDtoList.ForEach(dto =>
+                {
+                    var hList = HandleTask(dto);
+                    hList?.ForEach(item => respDtoList.Add(item));
                 });
 
                 // Очищаем пустые команды и пишем в OPC-сервер ответы
                 respDtoList.RemoveAll(item => item == null);
 
+                // Если все команды не требуют ответа, то возвращаем просто диагностическую информацию
                 if (respDtoList.Count == 0) return JsonConvert.SerializeObject(new { Status = "Запрос обработан", Ts = DateTime.Now });
                 return JsonConvert.SerializeObject(respDtoList);
             }
@@ -155,7 +169,7 @@ namespace BL.Core
             }
             catch (Exception e)
             {
-                _logger.Warning("Не получилось получить статус заявки. Ошибка: ", e);
+                _logger.Warning(e, "Не получилось получить статус заявки.");
                 Thread.Sleep(sleep);
                 return FS_NOTFOUND;
             }
@@ -200,7 +214,7 @@ namespace BL.Core
             }
             catch (Exception e)
             {
-                _logger.Warning("Не получилось получить статус заявки. Ошибка: ", e);
+                _logger.Warning(e,"Не получилось получить статус заявки.");
                 Thread.Sleep(sleep);
                 return FS_NOTFOUND;
             }

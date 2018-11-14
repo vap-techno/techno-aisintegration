@@ -51,13 +51,15 @@ namespace Techno.AsnOpcServer.App
 
         static readonly OPCDAServer srv = new OPCDAServer();
 
+        private const int sleep = 10;
+
         private const int TAG_CMD = 1; // Тэг Команды Cmd
         private const int TAG_RESP = 2; // Тэг Ответа Response
 
-        private static string respValue = "";
-        private static string cmdValue = "";
+        private static string respValue = ""; // Хранится значение, помещаемое в Response
+        private static string cmdValue = ""; // Хранится значение, помещаемое в Cmd
 
-        private static BL.Core.Manager manager;
+        private static BL.Core.Manager manager; // Б.логика
 
         // The process entry point. Set [MTAThread] to enable free threading.
         // Free threading is required by the OPC Toolkit.
@@ -340,16 +342,22 @@ namespace Techno.AsnOpcServer.App
                             if (val.ToLower() == "test error") throw new Exception("Test Error: OutOfMemory");
 
                             Log.Information("Принят запрос Cmd: {val}", val);
-                            Thread.Sleep(10);
+                            Thread.Sleep(sleep);
 
                             respValue = val.ToLower() == "ping" ? "pong" : manager.HandleRequest(val);
-                            
+
                             // Сбрасываем тэг команды
                             cmdValue = "";
                             srv.SetTag(TAG_CMD, cmdValue, Quality.Good, FileTime.UtcNow, ErrorCodes.Ok);
 
+                            // Ошибка  запроса "Не удалось обработать запрос"
+                            if (respValue.Contains("ErrCode") && respValue.Contains("-1073479676") ) throw new Exception("Неверный запрос");
+
+                            // Ошибка  запроса "Не прошла валидацию"
+                            if (respValue.Contains("ErrCode") && respValue.Contains("-2147024809")) throw new Exception("Не прошло валидацию");
+
                             Log.Information("Записываем в тэг Response: {respValue}", respValue);
-                            Thread.Sleep(1);
+                            Thread.Sleep(sleep);
 
                             // Пишем результат в тэг ответа
                             srv.BeginUpdate();
@@ -364,12 +372,20 @@ namespace Techno.AsnOpcServer.App
                 }
                 catch (Exception ex)
                 {
-                    Log.Error("Ошибка во время записи в тэг Cmd \n", ex);
-                    Thread.Sleep(10);
+                    Log.Error(ex,"Ошибка обработки тэга Cmd \n");
+                    Thread.Sleep(sleep);
 
                     if (ex.Message == "Test Error: OutOfMemory")
                     {
                         e.Errors[i] = ErrorCodes.OutOfMemory;
+                    }
+                    else if (ex.Message == "Неверный запрос")
+                    {
+                        e.Errors[i] = ErrorCodes.BadType;
+                    }
+                    else if (ex.Message == "Не прошло валидацию")
+                    {
+                        e.Errors[i] = ErrorCodes.InvalidArguments;
                     }
                     else
                     {

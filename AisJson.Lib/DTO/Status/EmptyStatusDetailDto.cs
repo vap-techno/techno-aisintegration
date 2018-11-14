@@ -9,5 +9,12 @@ namespace AisJson.Lib.DTO.Status
 {
     public class EmptyStatusDetailDto: IStatusDetailDto
     {
+        public object[] Details { get; set; }
+
+        public EmptyStatusDetailDto()
+        {
+            Details = new object[] { };
+        }
+
     }
 }
