@@ -770,7 +770,7 @@ namespace BL.Core
                             Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
                         };
 
-                        _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из СЛИВ АЦ отменена", foundedTask.Cid);
+                        _logger.Information("Команда на ОТМЕНУ. Заявка CID = {Cid} из СЛИВ АЦ отменена", foundedTask.Cid);
                         Thread.Sleep(sleep);
                     }
                     else
@@ -784,7 +784,7 @@ namespace BL.Core
                             Rm = "Ошибка взаимодействия с базой данных АСН",
                             Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
                         };
-                        _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
+                        _logger.Warning("Команда на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
                         Thread.Sleep(sleep);
                     }
                 }
@@ -799,7 +799,7 @@ namespace BL.Core
                         Rm = "Заявка уже в работе, либо завершена",
                         Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
                     };
-                    _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} из СЛИВ АЦ, отказ - заявка в работе или завершена", foundedTask.Cid);
+                    _logger.Warning("Команда на ОТМЕНУ. Заявка CID = {Cid} из СЛИВ АЦ, отказ - заявка в работе или завершена", foundedTask.Cid);
                     Thread.Sleep(sleep);
                 }
             }

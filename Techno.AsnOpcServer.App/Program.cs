@@ -49,10 +49,13 @@ namespace Techno.AsnOpcServer.App
 
         #endregion
 
+        // OPC - сервер
         static readonly OPCDAServer srv = new OPCDAServer();
 
+        // Таймаут ожидания, чтобы serilog успел записаться
         private const int sleep = 10;
 
+        // Идентификаторы тега команды и ответа
         private const int TAG_CMD = 1; // Тэг Команды Cmd
         private const int TAG_RESP = 2; // Тэг Ответа Response
 
@@ -61,8 +64,7 @@ namespace Techno.AsnOpcServer.App
 
         private static BL.Core.Manager manager; // Б.логика
 
-        // The process entry point. Set [MTAThread] to enable free threading.
-        // Free threading is required by the OPC Toolkit.
+        // Необходимо установить [MTAThread] для включения free threading - требуется для OPC Toolkit
         [MTAThread]
         static void Main(string[] args)
         {
@@ -139,21 +141,23 @@ namespace Techno.AsnOpcServer.App
             #region OPC
             /* ------------- Логика OPC DA ------------------ */
 
-            // Advise for the OPC Toolkit events.
+            // События OPC
             srv.Events.WriteItems += new WriteItemsEventHandler(Events_WriteItems);
             srv.Events.ReadItems += new ReadItemsEventHandler(Events_ReadItems);
             srv.Events.ServerReleased += new ServerReleasedEventHandler(Events_ServerReleased);
-            // Initialize the OPC server object and the OPC Toolkit.
+            srv.Events.CreateInstance += new CreateInstanceEventHandler(Event_CreateInstance);
+            srv.Events.DestroyInstance += new DestroyInstanceEventHandler(Events_DestoryInstance);
+            // Инициализация OPC
             srv.Initialize(srvGuid, 50, 50, ServerOptions.NoAccessPaths, '.', 25);
 
-            // Create the OPC tags.
-            // Create a tag.
+            // Создаем OPC-Тэги
             srv.CreateTag(0, "Node.Task.Cmd", AccessRights.readWritable, "");
             srv.CreateTag(1, "Node.Task.Response", AccessRights.readWritable, "");
 
-            // Mark the OPC server COM object as running.
+            // Отмечаем OPC-сервер как запущенный COM-объект
             srv.RegisterClassObject();
 
+            // Устанавливаем статовое значение тэгов (пустые)
             srv.BeginUpdate();
             srv.SetTag(TAG_CMD, respValue, Quality.Good, FileTime.UtcNow, ErrorCodes.Ok);
             srv.SetTag(TAG_RESP, cmdValue, Quality.Good, FileTime.UtcNow, ErrorCodes.Ok);
@@ -161,14 +165,20 @@ namespace Techno.AsnOpcServer.App
 
             // TODO: Не использоватаь srv.UpdateTags - из-за него падает программа
 
-            // На старте обнуляем тэги
-            //int[] tagsArr = new[] { TAG_CMD, TAG_RESP };
-            //object[] valArr = new[] { "", "" };
-            //srv.UpdateTags(tagsArr, valArr, Quality.Good, FileTime.UtcNow, ErrorCodes.Abort, true);
             #endregion
 
             Application.Run();
 
+        }
+
+        private static void Events_DestoryInstance(object sender, DestroyInstanceArgs e)
+        {
+            return;
+        }
+
+        private static void Event_CreateInstance(object sender, CreateInstanceArgs e)
+        {
+            return;
         }
 
         /// <summary>
@@ -314,18 +324,17 @@ namespace Techno.AsnOpcServer.App
         }
 
         /// <summary>
-        /// A handler for the WriteItems event of the OPCDAServer object.
-        /// We do not update the OPC server cache here.
+        /// Обработчик для события WriteItems 
         /// </summary>
         static void Events_WriteItems(object sender, WriteItemsArgs e)
         {
 
-            e.CopyToCache = false;
+            e.CopyToCache = false; // Не писать значения в кэш
 
             for (int i = 0; i < e.Count; i++)
             {
 
-                Console.WriteLine(e.Errors[i]);
+                Console.WriteLine(e.Errors[i]); // Debug
 
                 if (e.ItemIds[i].TagId == 0) continue;
                 try
@@ -399,7 +408,7 @@ namespace Techno.AsnOpcServer.App
         }
 
         /// <summary>
-        /// A handler for the ReadItems event of the OPCDAServer object.
+        /// Обработчик события ReadItems
         /// </summary>
         static void Events_ReadItems(object sender, ReadItemsArgs e)
         {
@@ -441,19 +450,13 @@ namespace Techno.AsnOpcServer.App
         }
 
         /// <summary>
-        /// A handler for the ServerReleased event of the OPCDAServer object.
+        /// Событие ServerReleased наступает, когда все клиенты отключаются
         /// </summary>
         static void Events_ServerReleased(object sender, ServerReleasedArgs e)
         {
-            // Make the OPC server object 'suspended'.
-            // No new OPC server instances can be created by the clients
-            // from this moment.
-            e.Suspend = true;
+            // Разрешаем OPC-серверу оставаться в памяти
+            e.Suspend = false;
    
-            // Mark the OPC server COM object as stopped.
-            srv.RevokeClassObject();
-
-            Application.Exit();
         }
     }
 }
