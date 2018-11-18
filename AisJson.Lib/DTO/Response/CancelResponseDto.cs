@@ -35,6 +35,6 @@ namespace AisJson.Lib.DTO.Response
         /// [TS] Статус задания
         /// </summary>
         [JsonProperty("TS")]
-        public IStatusDetailDto Ts { get; set; }
+        public IResponseDto Ts { get; set; }
     }
 }

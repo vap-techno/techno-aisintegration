@@ -27,7 +27,7 @@ namespace DAL.UnitOfWork
             StatusTask item;
 
             string sqlQueryTask =
-                $@"SELECT StatusTaskId, Ts, Cid FROM StatusTask WHERE StatusTask.StatusTaskId = {id}";
+                $@"SELECT StatusTaskId, Sd, Cid FROM StatusTask WHERE StatusTask.StatusTaskId = {id}";
 
             try
             {
@@ -52,7 +52,7 @@ namespace DAL.UnitOfWork
             List<StatusTask> items = new List<StatusTask>();
 
             string sqlQueryTask =
-                $@"SELECT StatusTaskId, Ts, Cid, Ids FROM StatusTask";
+                $@"SELECT StatusTaskId, Sd, Cid, Ids FROM StatusTask";
 
             try
             {

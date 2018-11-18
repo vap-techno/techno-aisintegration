@@ -29,7 +29,7 @@ namespace DAL.UnitOfWork
             CancelTask item;
 
             string sqlQueryTask =
-                $@"SELECT CancelTaskId, Ts, Cid, Ids FROM CancelTask WHERE CancelTask.CancelTaskId = {id}";
+                $@"SELECT CancelTaskId, Sd, Cid, Ids FROM CancelTask WHERE CancelTask.CancelTaskId = {id}";
 
             try
             {
@@ -53,7 +53,7 @@ namespace DAL.UnitOfWork
             List<CancelTask> items = new List<CancelTask>();
 
             string sqlQueryTask =
-                $@"SELECT CancelTaskId, Ts, Cid, Ids FROM CancelTask";
+                $@"SELECT CancelTaskId, Sd, Cid, Ids FROM CancelTask";
 
             try
             {

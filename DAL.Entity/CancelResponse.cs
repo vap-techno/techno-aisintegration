@@ -27,6 +27,6 @@ namespace DAL.Entity
         /// <summary>
         /// [TS] Статус задания 
         /// </summary>
-        public IStatusDetail Ts { get; set; }
+        public IAisResponse Ts { get; set; }
     }
 }

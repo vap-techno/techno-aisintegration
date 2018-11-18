@@ -25,8 +25,8 @@ namespace DAL.Entity
         public string Rm { get; set; }
 
         /// <summary>
-        /// [TS] Статус задания 
+        /// [SD] Статус задания 
         /// </summary>
-        public IStatusDetail Ts { get; set; }
+        public IStatusDetail Sd { get; set; }
     }
 }

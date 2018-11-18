@@ -37,28 +37,30 @@ namespace DAL.Core.TaskMapper
         /// <returns></returns>
         public CancelResponseDto GetCancelResponseDto(CancelResponse resp)
         {
-            var dto = new CancelResponseDto {Id = resp.Id, Cid = resp.Cid, R = resp.R, Rm = resp.Rm};
+            
 
             if (resp.Ts == null)
             {
-                dto.Ts = new EmptyStatusDetailDto();
-                return dto;
+                var sr = new StatusResponse()
+                {
+                    Id = resp.Id,
+                    Cid = resp.Cid,
+                    Sc = 4,
+                    Rm = "TS задан как null"
+                };
+
+                resp.Ts = sr;
             }
 
-            switch (resp.Ts.GetType().Name)
-            {
-                case ("FillInStatusDetail"):
-                    dto.Ts = Mapper.Map<FillInStatusDetailDto>(resp.Ts);
-                    break;
+            var dto = new CancelResponseDto {
+                Id = resp.Id,
+                Cid = resp.Cid,
+                R = resp.R,
+                Rm = resp.Rm,
+                Ts = GetStatusResponseDto(resp.Ts as StatusResponse)
+            };
 
-                case ("FillInMcStatusDetail"):
-                    dto.Ts = Mapper.Map<FillInMcStatusDetailDto>(resp.Ts);
-                    break;
 
-                case ("FillOutStatusDetail"):
-                    dto.Ts = Mapper.Map<FillOutStatusDetailDto>(resp.Ts);
-                    break;
-            }
             return dto;
         }
 
@@ -80,24 +82,24 @@ namespace DAL.Core.TaskMapper
                 
             };
 
-            if (resp.Ts == null)
+            if (resp.Sd == null)
             {
                 dto.Sd = new EmptyStatusDetailDto();
                 return dto;
             }
 
-            switch (resp.Ts.GetType().Name)
+            switch (resp.Sd.GetType().Name)
             {
                 case ("FillInStatusDetail"):
-                    dto.Sd = Mapper.Map<FillInStatusDetailDto>(resp.Ts);
+                    dto.Sd = Mapper.Map<FillInStatusDetailDto>(resp.Sd);
                     break;
 
                 case ("FillInMcStatusDetail"):
-                    dto.Sd = Mapper.Map<FillInMcStatusDetailDto>(resp.Ts);
+                    dto.Sd = Mapper.Map<FillInMcStatusDetailDto>(resp.Sd);
                     break;
 
                 case ("FillOutStatusDetail"):
-                    dto.Sd = Mapper.Map<FillOutStatusDetailDto>(resp.Ts);
+                    dto.Sd = Mapper.Map<FillOutStatusDetailDto>(resp.Sd);
                     break;
                 default:
                     dto.Sd = new EmptyStatusDetailDto();

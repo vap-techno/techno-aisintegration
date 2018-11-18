@@ -24,6 +24,7 @@ namespace BL.Core
     public class Manager 
     {
         //TODO: Во всех методах убрать создание экземпляра репозитория, вынести их в Fields
+        // TODO: При необходимости создать несколько менеджеров для каждой команды, объединив их под интерфейсом
 
         #region Fields
 
@@ -400,10 +401,17 @@ namespace BL.Core
                                 {
                                     Id = aisId,
                                     Cid = dto.Cid,
-                                    R = true,
-                                    Rm = "Заявка не найдена"
+                                    R = false,
+                                    Rm = "Заявка не найдена",
+                                    Ts = new StatusResponse()
+                                    {
+                                        Id = aisId,
+                                        Cid = dto.Cid,
+                                        Sc = FS_NOTFOUND,
+                                        Rm = "Заявка не найдена",
+                                    }
                                 };
-                                
+
                                 // Если заявки не обнаружено ни в одной из таблице - формируем сообщение в лог
                                 _logger.Warning("Заявка на ОТМЕНУ. Заявка на отмену с ID = {aisId} не найдена", aisId);
                                 Thread.Sleep(sleep);
@@ -524,7 +532,7 @@ namespace BL.Core
                 Cid = statusCid,
                 Sc = GetScField(foundedTask),
                 Rm = "Статус из таблицы налива в АЦ",
-                Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
+                Sd = Mapper.Map<FillInStatusDetail>(foundedTask)
             };
 
             _logger.Information("Команда на СТАТУС. Заявка CID = {Cid} из таблицы НАЛИВ АЦ", foundedTask.Cid);
@@ -550,7 +558,7 @@ namespace BL.Core
                 Cid = statusCid,
                 Sc = foundedTask.Fs,
                 Rm = "Статус из таблицы Налив КМХ",
-                Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
+                Sd = Mapper.Map<FillInMcStatusDetail>(foundedTask)
             };
 
             _logger.Information("Команда на СТАТУС. Заявка CID = {Cid} из таблицы НАЛИВ КМХ", foundedTask.Cid);
@@ -576,7 +584,7 @@ namespace BL.Core
                 Cid = statusCid,
                 Sc = GetScField(foundedTask),
                 Rm = "Статус из таблицы слива из АЦ",
-                Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
+                Sd = Mapper.Map<FillOutStatusDetail>(foundedTask)
             };
 
             _logger.Information("Команда на СТАТУС. Заявка CID = {Cid} из таблицы СЛИВ АЦ", foundedTask.Cid);
@@ -604,46 +612,49 @@ namespace BL.Core
             // Ищем заявку в таблице FillInTask
             var foundedTask = rep.GetItem(aisId);
 
-            if (foundedTask !=null && foundedTask.FillInTaskId > 0)
+            if (foundedTask != null && foundedTask.FillInTaskId > 0)
             {
-                // Заявку можно отменить, если все секции заявки в статусе "К исполнению"
-                var foundedTaskDetail = foundedTask.Details.Find(item => item.Fs > FS_STANDBY);
-                if (foundedTaskDetail == null)
+                // Заявка отменяется только в секциях со статусом "К исполнению"
+
+                // Список sid секций, которые были отменены
+                List<string> canceledList = new List<string>();
+
+                // Ищем не начатые заявки, устанавливаем статус "Отменено"
+                foundedTask.Details.ForEach(item =>
                 {
-                    // Помечаем все секции в "Отменено"
-                    foundedTask.Details.ForEach(item => item.Fs = FS_CANCELED);
-
-                    if (rep.Update(foundedTask))
+                    if (item.Fs == FS_STANDBY)
                     {
-                        // Формируем Entity ответа
-                        response = new CancelResponse()
+                        item.Fs = FS_CANCELED;
+                        canceledList.Add(item.Sid);
+                    }
+                });
+
+                // Обновляем заявку в базе данных
+                if (rep.Update(foundedTask))
+                {
+                    // Формируем Entity ответа
+
+                    var strSidList = (canceledList.Count > 0 ? String.Join(",", canceledList) : "");
+
+                    response = new CancelResponse()
+                    {
+                        Id = foundedTask.AisTaskId,
+                        Cid = cancelCid,
+                        R = true,
+                        Rm = $"Отменено {canceledList.Count} : {strSidList}",
+                        Ts = new StatusResponse()
                         {
                             Id = foundedTask.AisTaskId,
                             Cid = cancelCid,
-                            R = false,
-                            Rm = "Отменено",
-                            Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
-                        };
+                            Sc = GetScField(foundedTask),
+                            Rm = "Статус из таблицы налива в АЦ",
+                            Sd = Mapper.Map<FillInStatusDetail>(foundedTask)
+                        }
+                    };
 
-                        _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из НАЛИВ АЦ отменена", foundedTask.Cid);
-                        Thread.Sleep(sleep);
-                    }
-                    else
-                    {
-                        // Формируем Entity с ошибкой отмены
-                        response = new CancelResponse()
-                        {
-                            Id = foundedTask.AisTaskId,
-                            Cid = cancelCid,
-                            R = true,
-                            Rm = "Ошибка взаимодействия с базой данных АСН",
-                            Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
-                        };
-
-                        _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
-                        Thread.Sleep(sleep);
-
-                    }
+                    _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из НАЛИВ АЦ отменены: {strSidList}",
+                        foundedTask.Cid, strSidList);
+                    Thread.Sleep(sleep);
                 }
                 else
                 {
@@ -652,15 +663,24 @@ namespace BL.Core
                     {
                         Id = foundedTask.AisTaskId,
                         Cid = cancelCid,
-                        R = true,
-                        Rm = "Заявка уже в работе, либо завершена",
-                        Ts = Mapper.Map<FillInStatusDetail>(foundedTask)
+                        R = false,
+                        Rm = "Ошибка взаимодействия с базой данных АСН",
+                        Ts = new StatusResponse()
+                        {
+                            Id = foundedTask.AisTaskId,
+                            Cid = cancelCid,
+                            Sc = FS_ERROR,
+                            Rm = "Ошибка"
+                        }
                     };
-                    _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} из НАЛИВ АЦ, отказ - заявка в работе или завершена", foundedTask.Cid);
+
+                    _logger.Warning(
+                        "Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН",
+                        foundedTask.Cid);
                     Thread.Sleep(sleep);
                 }
             }
-            
+
             return response;
         }
 
@@ -692,9 +712,16 @@ namespace BL.Core
                         {
                             Id = foundedTask.AisTaskId,
                             Cid = cancelCid,
-                            R = false,
+                            R = true,
                             Rm = "Отменено",
-                            Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
+                            Ts = new StatusResponse()
+                            {
+                                Id = foundedTask.AisTaskId,
+                                Cid = cancelCid,
+                                Sc = foundedTask.Fs,
+                                Rm = "Статус из таблицы Налив КМХ",
+                                Sd = Mapper.Map<FillInMcStatusDetail>(foundedTask)
+                            }
                         };
 
                         _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из НАЛИВ КМХ отменена", foundedTask.Cid);
@@ -707,9 +734,16 @@ namespace BL.Core
                         {
                             Id = foundedTask.AisTaskId,
                             Cid = cancelCid,
-                            R = true,
+                            R = false,
                             Rm = "Ошибка взаимодействия с базой данных АСН",
-                            Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
+                            Ts = new StatusResponse()
+                            {
+                                Id = foundedTask.AisTaskId,
+                                Cid = cancelCid,
+                                Sc = FS_ERROR,
+                                Rm = "Ошибка"
+                            }
+
                         };
                         _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
                         Thread.Sleep(sleep);
@@ -724,7 +758,14 @@ namespace BL.Core
                         Cid = cancelCid,
                         R = true,
                         Rm = "Заявка уже в работе, либо завершена",
-                        Ts = Mapper.Map<FillInMcStatusDetail>(foundedTask)
+                        Ts = new StatusResponse()
+                        {
+                            Id = foundedTask.AisTaskId,
+                            Cid = cancelCid,
+                            Sc = foundedTask.Fs,
+                            Rm = "Статус из таблицы Налив КМХ",
+                            Sd = Mapper.Map<FillInMcStatusDetail>(foundedTask)
+                        }
                     };
                     _logger.Warning("Заявка на ОТМЕНУ. Заявка CID = {Cid} из НАЛИВ КМХ, отказ - заявка в работе или завершена", foundedTask.Cid);
                     Thread.Sleep(sleep);
@@ -751,42 +792,47 @@ namespace BL.Core
 
             if (foundedTask != null && foundedTask.FillOutTaskId > 0)
             {
-                // Заявку можно отменить, если все секции заявки в статусе "К исполнению"
-                var foundedTaskDetail = foundedTask.Details.Find(item => item.Fs > FS_STANDBY);
-                if (foundedTaskDetail == null)
+                // Заявка отменяется только в секциях со статусом "К исполнению"
+
+                // Список sid секций, которые были отменены
+                List<string> canceledList = new List<string>();
+
+                // Ищем не начатые заявки, устанавливаем статус "Отменено"
+                foundedTask.Details.ForEach(item =>
                 {
-                    // Помечаем все секции в "Отменено"
-                    foundedTask.Details.ForEach(item => item.Fs = FS_CANCELED);
-
-                    if (rep.Update(foundedTask))
+                    if (item.Fs == FS_STANDBY)
                     {
-                        // Формируем Entity ответа
-                        response = new CancelResponse()
+                        item.Fs = FS_CANCELED;
+                        canceledList.Add(item.Sid);
+                    }
+                });
+
+                // Обновляем заявку в базе данных
+                if (rep.Update(foundedTask))
+                {
+                    // Формируем Entity ответа
+
+                    var strSidList = (canceledList.Count > 0 ? String.Join(",", canceledList) : "");
+
+                    response = new CancelResponse()
+                    {
+                        Id = foundedTask.AisTaskId,
+                        Cid = cancelCid,
+                        R = true,
+                        Rm = $"Отменено {canceledList.Count} : {strSidList}",
+                        Ts = new StatusResponse()
                         {
                             Id = foundedTask.AisTaskId,
                             Cid = cancelCid,
-                            R = false,
-                            Rm = "Отменено",
-                            Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
-                        };
+                            Sc = GetScField(foundedTask),
+                            Rm = "Статус из таблицы слива из АЦ",
+                            Sd = Mapper.Map<FillInStatusDetail>(foundedTask)
+                        }
+                    };
 
-                        _logger.Information("Команда на ОТМЕНУ. Заявка CID = {Cid} из СЛИВ АЦ отменена", foundedTask.Cid);
-                        Thread.Sleep(sleep);
-                    }
-                    else
-                    {
-                        // Формируем Entity с ошибкой отмены
-                        response = new CancelResponse()
-                        {
-                            Id = foundedTask.AisTaskId,
-                            Cid = cancelCid,
-                            R = true,
-                            Rm = "Ошибка взаимодействия с базой данных АСН",
-                            Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
-                        };
-                        _logger.Warning("Команда на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН", foundedTask.Cid);
-                        Thread.Sleep(sleep);
-                    }
+                    _logger.Information("Команда ОТМЕНА. Заявка CID = {Cid} из СЛИВ АЦ отменены: {strSidList}",
+                        foundedTask.Cid, strSidList);
+                    Thread.Sleep(sleep);
                 }
                 else
                 {
@@ -795,13 +841,23 @@ namespace BL.Core
                     {
                         Id = foundedTask.AisTaskId,
                         Cid = cancelCid,
-                        R = true,
-                        Rm = "Заявка уже в работе, либо завершена",
-                        Ts = Mapper.Map<FillOutStatusDetail>(foundedTask)
+                        R = false,
+                        Rm = "Ошибка взаимодействия с базой данных АСН",
+                        Ts = new StatusResponse()
+                        {
+                            Id = foundedTask.AisTaskId,
+                            Cid = cancelCid,
+                            Sc = FS_ERROR,
+                            Rm = "Ошибка"
+                        }
                     };
-                    _logger.Warning("Команда на ОТМЕНУ. Заявка CID = {Cid} из СЛИВ АЦ, отказ - заявка в работе или завершена", foundedTask.Cid);
+
+                    _logger.Warning(
+                        "Заявка на ОТМЕНУ. Заявка CID = {Cid} отказ - ошибка взаимодействия с базой данных АСН",
+                        foundedTask.Cid);
                     Thread.Sleep(sleep);
                 }
+
             }
 
             return response;
