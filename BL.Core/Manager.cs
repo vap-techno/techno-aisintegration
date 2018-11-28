@@ -42,6 +42,8 @@ namespace BL.Core
         private const int FS_NOTFOUND = 5;
         private const int FS_COMPLETED = 6;
 
+        private JsonSerializerSettings formatSettings; // Настройки отображения времени 
+
         #endregion
 
         #region Properties
@@ -71,7 +73,13 @@ namespace BL.Core
                 _logger.Error(e,"Не инициализируется менедежер.");
                 throw;
             }
-            
+
+            formatSettings = new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                DateFormatString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFK"
+            };
+
         }
 
         #endregion ctor
@@ -114,7 +122,7 @@ namespace BL.Core
                 // Если одна из завявок не прошла валидацию, то возвращаем ошибку
                 if (!isTasksValid)
                     return JsonConvert.SerializeObject(new
-                        {Error = "Команда не прошла валидацию", ErrCode = -2147024809, Ts = DateTime.Now});
+                        {Error = "Команда не прошла валидацию", ErrCode = -2147024809, Ts = DateTime.Now}, formatSettings);
 
 
                 // После полной валидации обрабатываем заявки        
@@ -128,11 +136,11 @@ namespace BL.Core
                 respDtoList.RemoveAll(item => item == null);
 
                 // Если все команды не требуют ответа, то возвращаем просто диагностическую информацию
-                if (respDtoList.Count == 0) return JsonConvert.SerializeObject(new { Status = "Запрос обработан", Ts = DateTime.Now });
-                return JsonConvert.SerializeObject(respDtoList);
+                if (respDtoList.Count == 0) return JsonConvert.SerializeObject(new { Status = "Запрос обработан", Ts = DateTime.Now }, formatSettings);
+                return JsonConvert.SerializeObject(respDtoList, formatSettings);
             }
 
-            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос", ErrCode = -1073479676, Ts = DateTime.Now });
+            return JsonConvert.SerializeObject(new { Error = "Не удалось обработать запрос", ErrCode = -1073479676, Ts = DateTime.Now }, formatSettings);
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 [
   {
-    "CMD": "CANCEL",
+    "CMD": "STATUS",
     "CID": "201810202037",
     "DATA": {
       "IDs": [

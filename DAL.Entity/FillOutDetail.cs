@@ -146,7 +146,7 @@ namespace DAL.Entity
         /// <summary>
         /// [tRest] Остаток времени слива
         /// </summary>
-        public TimeSpan TimeRest { get; set; }
+        public int TimeRest { get; set; }
 
         #endregion
     }
