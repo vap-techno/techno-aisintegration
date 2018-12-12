@@ -255,7 +255,7 @@ namespace Techno.AsnOpcServer.App
                     }
                 }
                 // Рабочий режим
-                else if (args.Length != 0 && args[0] == "prod")
+                else 
                 {
                     var _cfg = jsonConfigs["prod"];
 
@@ -267,16 +267,6 @@ namespace Techno.AsnOpcServer.App
                         cfg = _cfg;
                     }
                 }
-                else
-                {
-                    cfg = new Configuration()
-                    {
-                        DbName = "TestDapper",
-                        LogFile = "Dev_TechnoAsnOpc.log",
-                        Provider = "SQLEXPRESS"
-                    };
-                }
-
                 return cfg;
             }
             catch (Exception e)

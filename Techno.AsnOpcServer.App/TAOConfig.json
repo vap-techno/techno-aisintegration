@@ -2,11 +2,11 @@
   "dev": {
     "DbName": "TestDapper",
     "Provider": "SQLEXPRESS",
-    "LogFile": "dev_TechnoAsnOpcDa.log"
+    "LogFile": "Dev_TechnoAsnOpcDa.log"
   },
-  "prod": {
-    "DbName": "AisIntegration",
+  "config": {
+    "DbName": "AisIntegrationDB",
     "Provider": "SQLEXPRESS",
-    "LogFile": "prod_TehcnoAsnOpcDa.log"
+    "LogFile": "Prod_TehcnoAsnOpcDa.log"
   }
 }

@@ -24,7 +24,7 @@ namespace AsnDataGrids.Lib.AllTasks
         private string _connectionString =
             @"Data Source=.\SQLEXPRESS;Initial Catalog=TestDapper;Integrated Security=True";
 
-        private const string ConfigFile = @"ConfigArm.json";
+        private const string ConfigFile = @"ConfigArmAisIntegration.json";
 
         private const string SqlAll = @"SELECT [FillOutTaskId] as 'ID(DB)'
       ,[Ts] as 'TS(DB)'
@@ -305,8 +305,6 @@ namespace AsnDataGrids.Lib.AllTasks
 
         #endregion
 
-
-
         #region AsyncMethods
 
         /// <summary>
@@ -381,7 +379,6 @@ namespace AsnDataGrids.Lib.AllTasks
         }
 
         #endregion
-
 
         #region Event Handlers
 
