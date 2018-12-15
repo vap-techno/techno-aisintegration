@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
-namespace AsnDataGrids.Lib
+namespace AsnDataGrids.Lib.NewTasks
 {
     public partial class FillInDetailNewDataGridControl : UserControl
     {
@@ -24,29 +24,33 @@ namespace AsnDataGrids.Lib
         private string _connectionString =
             @"Data Source=.\SQLEXPRESS;Initial Catalog=TestDapper;Integrated Security=True";
 
-        private const string ConfigFile = @"ConfigArm.json";
+        private const string ConfigFile = @"ConfigArmAisIntegration.json";
 
-        private const string SqlAll = @"SELECT [FillInDetailId] as 'ID(DB)'
+        private const string SqlAll = @"SELECT [FillInTask].[Tdt] as 'Дата'
+      ,[FillInTask].[AisTaskId] as 'ИД задания АИС ТПС'
+      ,[Sid] as 'ИД секции'
+      ,[FillInTask].[Dn] as 'ФИО водителия'
+      ,[FillInTask].[Pn] as 'Гос. номер АЦ'
+      ,[Sn] as 'Номер секции АЦ'
+      ,[FillInDetail].[Pn] as 'Продукт'
+      ,[Pvp] as 'Объект продукта(план)'
+      ,[Pmp] as 'Масса продукта(план)'
+      ,[Lnp] as 'Номер поста(план)'
+      ,[FillInTask].[Tno] as 'Номер задания'
+      ,[FillInTask].[On] as 'ФИО оператора'
       ,[FillInDetail].[Ts] as 'TS(DB)'
       ,[FillInTask].[FillInTaskId] as 'ID задания (DB)'
-      ,[FillInTask].[Tdt] as 'Дата'
-      ,[FillInTask].[AisTaskId] as 'ID задания АИС ТПС'
-      ,[Sid] as 'ИД секции'
+      ,[FillInDetailId] as 'ID(DB)'
       ,[Ls].[Name] as 'Код состояния поста налива'
       ,[Fs].[Name] as 'Код статуса налива в секцию'
-      ,[Lnp] as 'Номер поста(план)'
-      ,[Sn] as 'Номер секции АЦ'
       ,[Fm].[Name] as 'Способ налива'
       ,[Ppf].[Name] as 'Признак производства продукта'
-      ,[FillInDetail].[Pn] as 'Продукт'
       ,[Bfn] as 'Наименование базового топлива'
       ,[An] as 'Наименование присадки'
       ,[Tn] as 'Номер резервуаара'
       ,[Atn] as 'Номер резервуара с присадкой'
-      ,[Pvp] as 'Объект продукта(план)'
       ,[Bfvp] as 'Объем базового топлива(план)'
       ,[Avp] as 'Объем присадки(план)'
-      ,[Pmp] as 'Масса продукта(план)'
       ,[Bfmp] as 'Масса базового топлива(план)'
       ,[Amp] as 'Масса присадки(план)'
       ,[Lnf] as 'Номер поста(факт)'

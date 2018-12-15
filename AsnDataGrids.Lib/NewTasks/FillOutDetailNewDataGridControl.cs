@@ -24,7 +24,7 @@ namespace AsnDataGrids.Lib.NewTasks
         private string _connectionString =
             @"Data Source=.\SQLEXPRESS;Initial Catalog=TestDapper;Integrated Security=True";
 
-        private const string ConfigFile = @"ConfigArm.json";
+        private const string ConfigFile = @"ConfigArmAisIntegration.json";
 
         private const string SqlAll = @"SELECT [FillOutDetailId] as 'ID(DB)'
       ,[FillOutDetail].[Ts] as 'TS(DB)'

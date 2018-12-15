@@ -94,6 +94,7 @@ namespace Techno.AsnOpcServer.App
             #region Инициализация логгера
             // Создаем директорию логгера, если ее не существует
             string pathDir = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents", "TAO Log Files");
+            Console.WriteLine($"Путь к файлу конфигурации {pathDir}");
             Directory.CreateDirectory(pathDir);
 
             // Инициализация логгера
@@ -131,7 +132,7 @@ namespace Techno.AsnOpcServer.App
 
             icon.DoubleClick += Icon_DoubleClick;
             // TODO: После тестов поставить 0
-            ShowWindow(GetConsoleWindow(), 1); // На старте окно не скрываем 
+            ShowWindow(GetConsoleWindow(), 0); // На старте окно не скрываем 
             #endregion
 
             // Mapper
@@ -241,8 +242,9 @@ namespace Techno.AsnOpcServer.App
 
                 Configuration cfg = null;
 
-                // Тестовый режим    
-                if (args.Length != 0 && args[0] == "dev")
+
+               // Тестовый режим    
+               if (args.Length != 0 && args[0] == "dev")
                 {
                     var _cfg = jsonConfigs["dev"];
 
@@ -257,7 +259,7 @@ namespace Techno.AsnOpcServer.App
                 // Рабочий режим
                 else 
                 {
-                    var _cfg = jsonConfigs["prod"];
+                    var _cfg = jsonConfigs["config"];
 
                     if (_cfg != null
                         || _cfg.DbName != null

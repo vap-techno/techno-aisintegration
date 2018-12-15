@@ -34,7 +34,7 @@ namespace AsnDataGrids.Lib.NewTasks
             this.tabPageFillInTaskDetail = new System.Windows.Forms.TabPage();
             this.tabPageFillInMcTask = new System.Windows.Forms.TabPage();
             this.tabPageFillOutDetail = new System.Windows.Forms.TabPage();
-            this.fillInDetailNewDataGridControl1 = new AsnDataGrids.Lib.FillInDetailNewDataGridControl();
+            this.fillInDetailNewDataGridControl1 = new FillInDetailNewDataGridControl();
             this.fillInMcTaskNewDataGridControl1 = new AsnDataGrids.Lib.NewTasks.FillInMcTaskNewDataGridControl();
             this.fillOutDetailNewDataGridControl1 = new AsnDataGrids.Lib.NewTasks.FillOutDetailNewDataGridControl();
             this.tabControlMain.SuspendLayout();

@@ -30,15 +30,15 @@
         {
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageFillInTask = new System.Windows.Forms.TabPage();
-            this.fillInTaskDataGridControl1 = new AsnDataGrids.Lib.FillInTaskDataGridControl();
+            this.fillInTaskDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillInTaskDataGridControl();
             this.tabPageFillInTaskDetail = new System.Windows.Forms.TabPage();
-            this.fillInDetailDataGridControl1 = new AsnDataGrids.Lib.FillInDetailDataGridControl();
+            this.fillInDetailDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillInDetailDataGridControl();
             this.tabPageFillInMcTask = new System.Windows.Forms.TabPage();
-            this.fillInMcTaskDataGridControl1 = new AsnDataGrids.Lib.FillInMcTaskDataGridControl();
+            this.fillInMcTaskDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillInMcTaskDataGridControl();
             this.tabPageFillOutTask = new System.Windows.Forms.TabPage();
-            this.fillOutTaskDataGridControl1 = new AsnDataGrids.Lib.FillOutTaskDataGridControl();
+            this.fillOutTaskDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillOutTaskDataGridControl();
             this.tabPageFillOutDetail = new System.Windows.Forms.TabPage();
-            this.fillOutDetailDataGridControl1 = new AsnDataGrids.Lib.FillOutDetailDataGridControl();
+            this.fillOutDetailDataGridControl1 = new AsnDataGrids.Lib.AllTasks.FillOutDetailDataGridControl();
             this.tabControlMain.SuspendLayout();
             this.tabPageFillInTask.SuspendLayout();
             this.tabPageFillInTaskDetail.SuspendLayout();
@@ -181,14 +181,14 @@
         private System.Windows.Forms.TabControl tabControlMain;
         private System.Windows.Forms.TabPage tabPageFillInTask;
         private System.Windows.Forms.TabPage tabPageFillInTaskDetail;
-        private AsnDataGrids.Lib.FillInTaskDataGridControl fillInTaskDataGridControl1;
-        private AsnDataGrids.Lib.FillInDetailDataGridControl fillInDetailDataGridControl1;
+        private AsnDataGrids.Lib.AllTasks.FillInTaskDataGridControl fillInTaskDataGridControl1;
+        private AsnDataGrids.Lib.AllTasks.FillInDetailDataGridControl fillInDetailDataGridControl1;
         private System.Windows.Forms.TabPage tabPageFillInMcTask;
         private System.Windows.Forms.TabPage tabPageFillOutTask;
         private System.Windows.Forms.TabPage tabPageFillOutDetail;
-        private AsnDataGrids.Lib.FillInMcTaskDataGridControl fillInMcTaskDataGridControl1;
-        private AsnDataGrids.Lib.FillOutTaskDataGridControl fillOutTaskDataGridControl1;
-        private AsnDataGrids.Lib.FillOutDetailDataGridControl fillOutDetailDataGridControl1;
+        private AsnDataGrids.Lib.AllTasks.FillInMcTaskDataGridControl fillInMcTaskDataGridControl1;
+        private AsnDataGrids.Lib.AllTasks.FillOutTaskDataGridControl fillOutTaskDataGridControl1;
+        private AsnDataGrids.Lib.AllTasks.FillOutDetailDataGridControl fillOutDetailDataGridControl1;
     }
 }
 

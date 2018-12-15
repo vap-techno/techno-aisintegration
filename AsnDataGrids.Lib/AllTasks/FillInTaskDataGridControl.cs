@@ -476,13 +476,6 @@ namespace AsnDataGrids.Lib.AllTasks
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
 
-            var tag = "fdasf";
-
-            if (dataGridView1.CurrentCell.ColumnIndex.Equals(3) && e.RowIndex != -1)
-            {
-                if (dataGridView1.CurrentCell != null && dataGridView1.CurrentCell.Value != null)
-                    MessageBox.Show(dataGridView1.CurrentCell.Value.ToString());
-            }
         }
 
         private void dataGridView1_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)

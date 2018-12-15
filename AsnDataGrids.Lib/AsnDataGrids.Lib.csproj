@@ -52,6 +52,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllTasks\AllFillInTaskTables.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="AllTasks\AllFillInTaskTables.Designer.cs">
+      <DependentUpon>AllFillInTaskTables.cs</DependentUpon>
+    </Compile>
     <Compile Include="AllTasks\AllTaskTables.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -59,6 +65,12 @@
       <DependentUpon>AllTaskTables.cs</DependentUpon>
     </Compile>
     <Compile Include="Config.cs" />
+    <Compile Include="NewTasks\NewFillInTaskTables.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="NewTasks\NewFillInTaskTables.Designer.cs">
+      <DependentUpon>NewFillInTaskTables.cs</DependentUpon>
+    </Compile>
     <Compile Include="NewTasks\NewTaskTables.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -123,12 +135,18 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="ConfigArmAisIntegration.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="AllTasks\AllFillInTaskTables.resx">
+      <DependentUpon>AllFillInTaskTables.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AllTasks\AllTaskTables.resx">
       <DependentUpon>AllTaskTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewTasks\NewFillInTaskTables.resx">
+      <DependentUpon>NewFillInTaskTables.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="NewTasks\NewTaskTables.resx">
       <DependentUpon>NewTaskTables.cs</DependentUpon>

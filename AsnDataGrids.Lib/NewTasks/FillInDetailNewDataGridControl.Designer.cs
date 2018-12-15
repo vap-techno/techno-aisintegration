@@ -1,4 +1,4 @@
-﻿namespace AsnDataGrids.Lib
+﻿namespace AsnDataGrids.Lib.NewTasks
 {
     partial class FillInDetailNewDataGridControl
     {
@@ -238,8 +238,8 @@
             // 
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
-            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.ColumnHeader;
-            this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllHeaders;
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
             dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
@@ -310,12 +310,12 @@
             this.panelToolBar.Size = new System.Drawing.Size(1089, 59);
             this.panelToolBar.TabIndex = 16;
             // 
-            // FillInDetailDataGridControl
+            // FillInDetailNewDataGridControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tableLayoutPanel1);
-            this.Name = "FillInDetailDataGridControl";
+            this.Name = "FillInDetailNewDataGridControl";
             this.Size = new System.Drawing.Size(1600, 388);
             this.panelFilter.ResumeLayout(false);
             this.panelFilter.PerformLayout();
