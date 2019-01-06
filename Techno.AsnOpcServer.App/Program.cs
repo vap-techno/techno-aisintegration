@@ -76,7 +76,9 @@ namespace Techno.AsnOpcServer.App
             #region Конфигурация
             // Выбираем стадию разработки dev или prod
             var cfgFileName = "TAOConfig.json";
-            string cfgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cfgFileName);
+            // TODO: Скорее всего тут таже проблема с путями
+            //string cfgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cfgFileName);
+            string cfgPath = Path.Combine(@"C:\Project\Config\", cfgFileName);
 
             // Считываем конфигурацию
             var cfg = Config(args, cfgPath);
@@ -93,7 +95,9 @@ namespace Techno.AsnOpcServer.App
 
             #region Инициализация логгера
             // Создаем директорию логгера, если ее не существует
-            string pathDir = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents", "TAO Log Files");
+            // TODO: При работе с доменом лог пишется к запускающему пользователю, поэтому у каждого лог свой, значит использовать Мои Документы нельзя
+            // string pathDir = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents", "TAO Log Files");
+            string pathDir = Path.Combine(@"C:\Project\", "TAO Log Files");
             Console.WriteLine($"Путь к файлу конфигурации {pathDir}");
             Directory.CreateDirectory(pathDir);
 

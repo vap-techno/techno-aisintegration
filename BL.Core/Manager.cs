@@ -164,7 +164,7 @@ namespace BL.Core
                 }
 
                 // Если какая-то секция отменена, ошибочна или выполнена, а какая-то еще принята к исполнению - то заявка все еще в работе
-                bool stillProgress = task.Details.Any((item) => item.Fs == FS_STANDBY) || task.Details.Any((item) => item.Fs >= FS_COMPLETED);
+                bool stillProgress = task.Details.Any((item) => item.Fs == FS_STANDBY) && task.Details.Any((item) => item.Fs >= FS_CANCELED);
                 if (stillProgress) return FS_INPROGRESS;
 
                 // Если все секции завершились, то статус заявки выдаем по наименьшей
@@ -209,7 +209,7 @@ namespace BL.Core
                 }
 
                 // Если какая-то секция отменена, ошибочна или выполнена, а какая-то еще принята к исполнению - то заявка все еще в работе
-                bool stillProgress = task.Details.Any((item) => item.Fs == FS_STANDBY) || task.Details.Any((item) => item.Fs >= FS_COMPLETED);
+                bool stillProgress = task.Details.Any((item) => item.Fs == FS_STANDBY) && task.Details.Any((item) => item.Fs >= FS_CANCELED);
                 if (stillProgress) return FS_INPROGRESS;
 
                 // Если все секции завершились, то статус заявки выдаем по наименьшей
@@ -290,7 +290,11 @@ namespace BL.Core
             }
 
             // Еслии записи в БД не найдено - добавляем запись со статусом к "Исполнению"
-            task.Details.ForEach(d => d.Fs = FS_STANDBY);
+            task.Details.ForEach(d =>
+            {
+                d.Fs = FS_STANDBY;
+                d.Ls = FS_STANDBY;
+            });
             var id = rep.Create(task);
 
             // Записываем в лог результат
@@ -323,6 +327,7 @@ namespace BL.Core
 
             // Еслии записи в БД не найдено - добавляем запись со статусом к "Исполнению"
             task.Fs = 1;
+            task.Ls = 1;
             var id = rep.Create(task);
 
             // Записываем в лог результат
@@ -355,7 +360,11 @@ namespace BL.Core
             }
 
             // Еслии записи в БД не найдено - добавляем запись со статусом к "Исполнению"
-            task.Details.ForEach(d => d.Fs = FS_STANDBY);
+            task.Details.ForEach(d =>
+            {
+                d.Fs = FS_STANDBY;
+                d.Ls = FS_STANDBY;
+            });
             var id = rep.Create(task);
 
             // Записываем в лог результат
@@ -633,6 +642,7 @@ namespace BL.Core
                     if (item.Fs == FS_STANDBY)
                     {
                         item.Fs = FS_CANCELED;
+                        item.Ls = FS_CANCELED;
                         canceledList.Add(item.Sid);
                     }
                 });
@@ -811,6 +821,7 @@ namespace BL.Core
                     if (item.Fs == FS_STANDBY)
                     {
                         item.Fs = FS_CANCELED;
+                        item.Ls = FS_CANCELED;
                         canceledList.Add(item.Sid);
                     }
                 });
