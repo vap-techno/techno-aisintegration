@@ -63,6 +63,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Monolith", "Monolith", "{89
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Newtonsoft.Tests", "Newtonsoft.Tests\Newtonsoft.Tests.csproj", "{10904892-BC85-462D-86A5-E84200A82703}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Temp.WinGridWinCCExchange.App", "Temp.WinGridWinCCExchange.App\Temp.WinGridWinCCExchange.App.csproj", "{2194FA6D-DD47-43CA-93FA-99C0C6828E12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -325,6 +327,18 @@ Global
 		{10904892-BC85-462D-86A5-E84200A82703}.Release|x64.Build.0 = Release|Any CPU
 		{10904892-BC85-462D-86A5-E84200A82703}.Release|x86.ActiveCfg = Release|Any CPU
 		{10904892-BC85-462D-86A5-E84200A82703}.Release|x86.Build.0 = Release|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Debug|x64.Build.0 = Debug|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Debug|x86.Build.0 = Debug|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Release|x64.ActiveCfg = Release|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Release|x64.Build.0 = Release|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Release|x86.ActiveCfg = Release|Any CPU
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -354,6 +368,7 @@ Global
 		{BCA622BC-2C07-41D1-AD6B-BBB39844C599} = {8918C704-2CED-4A01-B05C-4CBDE56D8DBD}
 		{8918C704-2CED-4A01-B05C-4CBDE56D8DBD} = {CB59D612-CC51-4FFF-86E9-185FC2530C18}
 		{10904892-BC85-462D-86A5-E84200A82703} = {411BC22A-BA5E-4E60-ABCA-AB7B8C319A11}
+		{2194FA6D-DD47-43CA-93FA-99C0C6828E12} = {C6FFADD8-CD89-4055-BBD1-6AE51BC46B79}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BAB61B3-4DAE-48B9-A0BD-17548FCDB720}

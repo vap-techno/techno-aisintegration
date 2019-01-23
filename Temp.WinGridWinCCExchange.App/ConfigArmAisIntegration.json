@@ -1,0 +1,17 @@
+{
+  "DbName": "AisIntegrationDB",
+  "PostList": [
+    "Пост 1.1",
+    "Пост 1.2",
+    "Пост 1.3",
+    "Пост 1.4",
+    "Пост 2.1",
+    "Пост 2.2",
+    "Пост 2.3",
+    "Пост 2.4",
+    "Не верный пост"
+  ],
+  "OpcPath": "opcda://PROG01/OPC.SimaticHMI.CoRtHmiRTm.1",
+  "OpcExchangeTag": {
+    "CmdStr": "Task_External_cmdStr" }
+}
