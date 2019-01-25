@@ -29,8 +29,6 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.labelSelected = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.buttonRefresh = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -41,32 +39,12 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.labelSelected);
-            this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.buttonRefresh);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(904, 55);
             this.panel1.TabIndex = 0;
-            // 
-            // labelSelected
-            // 
-            this.labelSelected.AutoSize = true;
-            this.labelSelected.Location = new System.Drawing.Point(77, 30);
-            this.labelSelected.Name = "labelSelected";
-            this.labelSelected.Size = new System.Drawing.Size(19, 13);
-            this.labelSelected.TabIndex = 10;
-            this.labelSelected.Text = "__";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(74, 13);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(49, 13);
-            this.label1.TabIndex = 9;
-            this.label1.Text = "Selected";
             // 
             // buttonRefresh
             // 
@@ -111,7 +89,6 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
@@ -124,8 +101,6 @@
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button buttonRefresh;
-        private System.Windows.Forms.Label labelSelected;
-        private System.Windows.Forms.Label label1;
     }
 }
 

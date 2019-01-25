@@ -15,6 +15,13 @@ namespace AsnDataGrids.Lib.NewTasks
 
         #region Fields
 
+        private string _aisId = ""; // Выбранный идентификатор задания
+        private string _sectId = ""; // Выбранный идентификатор секции
+        private uint _postNumber = 0; // Выбранный номер поста
+        private const int _cmdType = 1;
+
+        private readonly Config _cfg = null; // Конфигурация
+
         // Время начала в произвольной выборке
         private DateTime _customDateBegin = new DateTime();
 
@@ -26,6 +33,7 @@ namespace AsnDataGrids.Lib.NewTasks
 
         private const string ConfigFile = @"ConfigArmAisIntegration.json";
 
+        #region SQL-запрос
         private const string SqlAll = @"SELECT [FillInTask].[Tdt] as 'Дата'
       ,[FillInTask].[AisTaskId] as 'ИД задания АИС ТПС'
       ,[Sid] as 'ИД секции'
@@ -93,10 +101,10 @@ namespace AsnDataGrids.Lib.NewTasks
 	  INNER JOIN [Fs]
 	  ON [Fs].[FsId] = [FillInDetail].[Fs]
       WHERE [FillInDetail].[Fs] = 1 
-        ";
+        "; 
+        
 
         private const string SqlSort = "\n ORDER BY [FillInTask].[Tdt] DESC";
-
         private const string SqlDay = SqlAll + "AND [FillInTask].[Tdt] > DATEADD(day,-1,GETDATE())" + SqlSort;
         private const string SqlWeek = SqlAll + "AND [FillInTask].[Tdt] > DATEADD(WEEK,-1,GETDATE())" + SqlSort;
         private const string SqlMonth = SqlAll + "AND [FillInTask].[Tdt] > DATEADD(month,-1,GETDATE())" + SqlSort;
@@ -104,7 +112,10 @@ namespace AsnDataGrids.Lib.NewTasks
 
         #endregion
 
+        #endregion
+
         #region Constructors
+
         public FillInDetailNewDataGridControl()
         {
             InitializeComponent();
@@ -122,6 +133,7 @@ namespace AsnDataGrids.Lib.NewTasks
             dateTimePickerEndDate.Value = _customDateBegin;
             dateTimePickerEndTime.Value = _customDateBegin;
         } 
+        
         #endregion
 
         #region Methods
@@ -397,7 +409,7 @@ namespace AsnDataGrids.Lib.NewTasks
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Не могу сделать запрос \n{e.Message}");
+                MessageBox.Show($"Не могу сделать запрос \n {e.Message}");
                 return;
             }
 
@@ -521,9 +533,7 @@ namespace AsnDataGrids.Lib.NewTasks
         {
             ReFillDataGrid(panelFilter.Controls);
         }
-
-
-
+        
         #endregion
 
     }

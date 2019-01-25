@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="h-opc, Version=0.9.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\h-opc.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -39,6 +42,24 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Opc.Ua.Client, Version=1.2.334.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\Opc.Ua.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Opc.Ua.Configuration, Version=1.2.334.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\Opc.Ua.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Opc.Ua.Core, Version=1.2.334.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\Opc.Ua.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="OpcComRcw, Version=2.0.105.1, Culture=neutral, PublicKeyToken=9a40e993cbface53, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\OpcComRcw.dll</HintPath>
+    </Reference>
+    <Reference Include="OpcNetApi, Version=2.1.105.1, Culture=neutral, PublicKeyToken=9a40e993cbface53, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\OpcNetApi.dll</HintPath>
+    </Reference>
+    <Reference Include="OpcNetApi.Com, Version=2.1.105.1, Culture=neutral, PublicKeyToken=9a40e993cbface53, processorArchitecture=MSIL">
+      <HintPath>..\packages\H.Opc.0.9.3\lib\OpcNetApi.Com.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -65,6 +86,7 @@
       <DependentUpon>AllTaskTables.cs</DependentUpon>
     </Compile>
     <Compile Include="Config.cs" />
+    <Compile Include="GridFunctional.cs" />
     <Compile Include="NewTasks\NewFillInTaskTables.cs">
       <SubType>UserControl</SubType>
     </Compile>

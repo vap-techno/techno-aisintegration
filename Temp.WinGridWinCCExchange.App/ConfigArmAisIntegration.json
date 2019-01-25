@@ -8,8 +8,7 @@
     "Пост 2.1",
     "Пост 2.2",
     "Пост 2.3",
-    "Пост 2.4",
-    "Не верный пост"
+    "Пост 2.4"
   ],
   "OpcPath": "opcda://PROG01/OPC.SimaticHMI.CoRtHmiRTm.1",
   "OpcExchangeTag": {

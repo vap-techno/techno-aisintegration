@@ -10,9 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Hylasoft.Opc.Common;
 using Hylasoft.Opc.Da;
-using Hylasoft.Opc.Ua;
 using Newtonsoft.Json;
 
 namespace Temp.WinGridWinCCExchange.App
@@ -20,16 +18,18 @@ namespace Temp.WinGridWinCCExchange.App
     public partial class Form1 : Form
     {
 
-        private string _aisId = "";
-        private string _sectId = "";
-        private uint _postNumber = 0;
-        
+        private string _aisId = ""; // Выбранный идентификатор задания
+        private string _sectId = ""; // Выбранный идентификатор секции
+        private uint _postNumber = 0; // Выбранный номер поста
+        private const int _cmdType = 1; 
+
+        private readonly Config _cfg = null; // Конфигурация
         private const string ConfigFile = @"ConfigArmAisIntegration.json";
-
-
-        private string _connectionString =
+        
+        private readonly string _connectionString =
             @"Data Source=.\SQLEXPRESS;Initial Catalog=TestDapper;Integrated Security=True";
 
+        #region SQL-запрос
         private const string SqlAll = @"SELECT [FillInTask].[Tdt] as 'Дата'
       ,[FillInTask].[AisTaskId] as 'ИД задания АИС ТПС'
       ,[Sid] as 'ИД секции'
@@ -96,13 +96,20 @@ namespace Temp.WinGridWinCCExchange.App
 	  ON [Ls].[LsId] = [FillInDetail].[Ls]
 	  INNER JOIN [Fs]
 	  ON [Fs].[FsId] = [FillInDetail].[Fs]
-        ";
+        "; 
+        #endregion
 
         public Form1()
         {
             InitializeComponent();
+
+
+            // Читаем файл конфигурации
+            var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
+            _cfg = GetConfig(path);
         }
 
+        #region Methods
         /// <summary>
         /// Возвращает набор данных из БД для DataGrid (синхронный)
         /// </summary>
@@ -151,17 +158,16 @@ namespace Temp.WinGridWinCCExchange.App
         /// <summary>
         /// Возвращает порядковый номер поста, считая от 1, 0 - не найден или ошибка
         /// </summary>
-        /// <param name="postNameStr"></param>
+        /// <param name="postNameStr"></param>v
+        /// <param name="cfg"></param>
         /// <returns> Порядковый номер поста </returns>
-        private uint GetPostNumber(string postNameStr)
+        private uint GetPostNumber(string postNameStr, Config cfg)
         {
             // Определяем порядковый номер поста из списка их названий
             try
             {
-                var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
-                var cfg = GetConfig(path);
                 var index = cfg.PostList.FindIndex((item) => item == postNameStr);
-                return index < 0 ? 0 : (uint) index + 1;
+                return index < 0 ? 0 : (uint)index + 1;
             }
             catch (Exception exc)
             {
@@ -180,10 +186,9 @@ namespace Temp.WinGridWinCCExchange.App
             try
             {
                 string json = File.ReadAllText(path, Encoding.GetEncoding(1251));
-                var cfg = JsonConvert.DeserializeObject<Config>(json);
-                return cfg;
+                return JsonConvert.DeserializeObject<Config>(json);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -202,52 +207,20 @@ namespace Temp.WinGridWinCCExchange.App
                 client.Connect();
                 client.Write(cfg.OpcExchangeTag.CmdStr, values.CmdStr);
             }
-        }
+        } 
+        #endregion
 
+        #region Event handlers
         private void buttonRefresh_Click(object sender, EventArgs e)
         {
             FillDataGrid(SqlAll);
         }
 
         /// <summary>
-        /// Обработчик события выбора элемента контестного меню
+        /// Двойной клик по гриду
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ConMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-            var con = sender as ContextMenuStrip;
-            con?.Hide();
-
-            DialogResult res = MessageBox.Show("Привязать к " + e.ClickedItem.Name, "Привязка",
-                MessageBoxButtons.OKCancel);
-
-            if (res == DialogResult.OK)
-            {
-
-                // Вычисляем номер поста
-                _postNumber = GetPostNumber(e.ClickedItem.Name);
-                
-                // Вычисляем значения тегов
-                OpcExchangeTagValues values = new OpcExchangeTagValues()
-                {
-                    CmdStr = $"{_aisId};{_sectId};{_postNumber}"
-                };
-
-                // Отправляем значения в OPC сервер
-                try
-                {
-                    var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
-                    var cfg = GetConfig(path);
-                    SendRequestToOpcUa(cfg, values);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Не могу отправить запрос \n {ex}");
-                }
-            }
-        }
-
         private void dataGridView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             // Двойной щелчок ЛКМ
@@ -269,12 +242,12 @@ namespace Temp.WinGridWinCCExchange.App
 
                         if (dataGridView1.Columns[i].Name == "ИД задания АИС ТПС")
                         {
-                            _aisId = (string) dataGridView1.Rows[rowPosition].Cells[i].Value;
+                            _aisId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
                         }
 
                         if (dataGridView1.Columns[i].Name == "ИД секции")
                         {
-                            _sectId = (string) dataGridView1.Rows[rowPosition].Cells[i].Value;
+                            _sectId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
                         }
 
                     }
@@ -286,8 +259,8 @@ namespace Temp.WinGridWinCCExchange.App
                     try
                     {
                         var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
-                        var cfg = GetConfig(path);
-                        cfg.PostList.ForEach((item) => conMenu.Items.Add(item).Name = item);
+
+                        _cfg.PostList?.ForEach((item) => conMenu.Items.Add(item).Name = item);
 
                         // Отображаем контекстное меню
                         conMenu.Show(dataGridView1, e.X, e.Y);
@@ -299,10 +272,48 @@ namespace Temp.WinGridWinCCExchange.App
                     {
                         MessageBox.Show($"Неверный конфигурационный файл \n {exc.Message}");
                     }
-                    
+
                 }
             }
         }
+
+        /// <summary>
+        /// Обработчик события выбора элемента контестного меню
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ConMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            var con = sender as ContextMenuStrip;
+            con?.Hide();
+
+            DialogResult res = MessageBox.Show("Скопировать в " + e.ClickedItem.Name, "Копирование",
+                MessageBoxButtons.OKCancel);
+
+            if (res == DialogResult.OK)
+            {
+
+                // Вычисляем номер поста
+                _postNumber = GetPostNumber(e.ClickedItem.Name, _cfg);
+
+                // Вычисляем значения тегов
+                OpcExchangeTagValues values = new OpcExchangeTagValues()
+                {
+                    CmdStr = $"{_aisId};{_sectId};{_postNumber};{_cmdType}"
+                };
+
+                // Отправляем значения в OPC сервер
+                try
+                {
+                    SendRequestToOpcUa(_cfg, values);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Не могу отправить запрос \n {ex}");
+                }
+            }
+        } 
+        #endregion
 
     }
     
