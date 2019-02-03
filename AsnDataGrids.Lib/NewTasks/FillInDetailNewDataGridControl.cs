@@ -18,7 +18,15 @@ namespace AsnDataGrids.Lib.NewTasks
         private string _aisId = ""; // Выбранный идентификатор задания
         private string _sectId = ""; // Выбранный идентификатор секции
         private uint _postNumber = 0; // Выбранный номер поста
-        private const int _cmdType = 1;
+        private readonly int _cmdType = 1; // Налив в АЦ
+        private readonly string _tableName = "FillInTask"; // Таблица, из которой берем данные по временной выборки
+
+        // Распложение файла конфигурации
+        private readonly string[] _cfgPathArr = {
+            @"C:\Project\Config\",
+            @"C:\Program Files (x86)\Siemens\Automation\WinCC RT Advanced",
+            Environment.CurrentDirectory
+        };
 
         private readonly Config _cfg = null; // Конфигурация
 
@@ -32,6 +40,8 @@ namespace AsnDataGrids.Lib.NewTasks
             @"Data Source=.\SQLEXPRESS;Initial Catalog=TestDapper;Integrated Security=True";
 
         private const string ConfigFile = @"ConfigArmAisIntegration.json";
+
+        #endregion
 
         #region SQL-запрос
         private const string SqlAll = @"SELECT [FillInTask].[Tdt] as 'Дата'
@@ -112,16 +122,23 @@ namespace AsnDataGrids.Lib.NewTasks
 
         #endregion
 
-        #endregion
-
         #region Constructors
 
         public FillInDetailNewDataGridControl()
         {
             InitializeComponent();
 
+            try
+            {
+                _cfg = GridFunctional.GetConfig(_cfgPathArr, ConfigFile);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"Файл конфигурации {ConfigFile} не может быть считан \n {e}");
+            }
+
             dataGridView1.AllowUserToAddRows = false;
-            ReFillDataGrid(panelFilter.Controls);
+            
             panelFilter.Controls[0].Focus();
             LockDateTimePickers();
 
@@ -132,85 +149,14 @@ namespace AsnDataGrids.Lib.NewTasks
             dateTimePickerBeginTime.Value = _customDateBegin;
             dateTimePickerEndDate.Value = _customDateBegin;
             dateTimePickerEndTime.Value = _customDateBegin;
-        } 
-        
+
+
+
+            ReFillDataGrid(panelFilter.Controls);
+        }
+
         #endregion
-
         #region Methods
-
-        /// <summary>
-        /// Возвращает набор данных из БД для DataGrid (синхронный)
-        /// </summary>
-        /// <param name="conString">Строка подлкючения к БД</param>
-        /// <param name="query"> SQL-запрос </param>
-        /// <returns></returns>
-        private DataSet GetDataSet(string conString, string query)
-        {
-            using (var connection = new SqlConnection(conString))
-            using (var adapter = new SqlDataAdapter(query, connection))
-            {
-                DataSet dataSet = new DataSet();
-                adapter.Fill(dataSet);
-                return dataSet;
-            }
-        }
-
-        /// <summary>
-        /// Отправляет запрос в SQL и заполняет dataGrid
-        /// </summary>
-        /// <param name="query">SQL - запрос</param>
-        private void FillDataGrid(string query)
-        {
-
-            // Читаем из файла конфигурации имя базы данных
-            try
-            {
-                var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
-                using (StreamReader file = File.OpenText(path))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    var obj = (Config)serializer.Deserialize(file, typeof(Config));
-                    if (string.IsNullOrEmpty(obj.DbName)) return;
-                    _connectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=" + obj.DbName +
-                                        ";Integrated Security=True";
-                }
-            }
-            catch (Exception e)
-            {
-
-                MessageBox.Show($"Неверный конфигурационный файл \n{e.Message}");
-                return;
-            }
-
-
-            try
-            {
-                // Делаем запрос в БД и формируем ответ на DataGrid
-                var ds = GetDataSet(_connectionString, query);
-                dataGridView1.DataSource = ds.Tables[0];
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"Не могу сделать запрос \n{e.Message}");
-                return;
-            }
-
-
-            // Оформление таблицы
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
-            {
-                column.Resizable = DataGridViewTriState.True;
-
-                // Устанавливаем ширину строк "Дата начала" и "Дата окончания", чтобы влезло все
-                //if ((column.Name.IndexOf("Дата начала", StringComparison.Ordinal) >= 0) ||
-                //    column.Name.IndexOf("Дата окончания", StringComparison.Ordinal) >= 0)
-                //{
-                //    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                //}
-            }
-
-
-        }
 
         /// <summary>
         /// Заполняет DataGrid в зависимости от выбранного radiobutton в коллекции
@@ -240,55 +186,10 @@ namespace AsnDataGrids.Lib.NewTasks
                     FillDataGridAsync(SqlAll);
                     break;
                 case "radioCustom":
-                    var qeury = GetQuerySqlStringCustom(_customDateBegin, _customDateEnd);
+                    var qeury = GridFunctional.GetQuerySqlStringCustom(SqlAll, SqlSort,_tableName,_customDateBegin, _customDateEnd);
                     FillDataGridAsync(qeury);
                     break;
             }
-        }
-
-        /// <summary>
-        /// Генерирует строку запроса по произвольному периоду
-        /// </summary>
-        /// <param name="beginDateTime"> Начало </param>
-        /// <param name="endDateTime"> Конец </param>
-        /// <returns></returns>
-        private string GetQuerySqlStringCustom(DateTime beginDateTime, DateTime endDateTime)
-        {
-
-            return SqlAll +
-                   "AND [FillInTask].[Tdt] BETWEEN CAST('" +
-                   String.Format(new CultureInfo("en-US"), "{0}", beginDateTime) +
-                   "' as datetime) AND CAST('" +
-                   String.Format(new CultureInfo("en-US"), "{0}", endDateTime) +
-                   "' as datetime) " + SqlSort;
-
-        }
-
-        /// <summary>
-        /// Блокирует элементы произвольной выборки
-        /// </summary>
-        private void LockDateTimePickers()
-        {
-            dateTimePickerBeginDate.Enabled = false;
-            dateTimePickerBeginTime.Enabled = false;
-            dateTimePickerEndDate.Enabled = false;
-            dateTimePickerEndTime.Enabled = false;
-
-            dateTimePickerBeginDate.Parent.Refresh();
-        }
-
-        /// <summary>
-        /// Разблокирует элементы произвольной выборки
-        /// </summary>
-        private void UnlockDateTimePicker()
-        {
-            dateTimePickerBeginDate.Enabled = true;
-            dateTimePickerBeginTime.Enabled = true;
-            dateTimePickerEndDate.Enabled = true;
-            dateTimePickerEndTime.Enabled = true;
-
-            dateTimePickerBeginDate.Parent.Refresh();
-
         }
 
         /// <summary>
@@ -314,7 +215,7 @@ namespace AsnDataGrids.Lib.NewTasks
 
             try
             {
-                
+
                 worksheet = workbook.ActiveSheet;
                 worksheet.Name = "Отгрузки";
 
@@ -326,11 +227,11 @@ namespace AsnDataGrids.Lib.NewTasks
                 for (var i = 0; i < dataGridView1.Columns.Count; i++)
                 {
                     // Excel индексируется с 1,1
-                    
+
                     worksheet.Cells[cellRowIndex, cellColumnIndex] = dataGridView1.Columns[i].HeaderText;
                     cellColumnIndex++;
                 }
- 
+
 
 
                 CopyAlltoClipboard(); // Скопировать всю таблицу в буфер обмена
@@ -371,21 +272,36 @@ namespace AsnDataGrids.Lib.NewTasks
 
         }
 
+        /// <summary>
+        /// Блокирует элементы произвольной выборки
+        /// </summary>
+        public void LockDateTimePickers()
+        {
+            dateTimePickerBeginDate.Enabled = false;
+            dateTimePickerBeginTime.Enabled = false;
+            dateTimePickerEndDate.Enabled = false;
+            dateTimePickerEndTime.Enabled = false;
+
+            dateTimePickerBeginDate.Parent.Refresh();
+        }
+
+        /// <summary>
+        /// Разблокирует элементы произвольной выборки
+        /// </summary>
+        public void UnlockDateTimePickers()
+        {
+            dateTimePickerBeginDate.Enabled = true;
+            dateTimePickerBeginTime.Enabled = true;
+            dateTimePickerEndDate.Enabled = true;
+            dateTimePickerEndTime.Enabled = true;
+
+            dateTimePickerBeginDate.Parent.Refresh();
+        }
+
 
         #endregion
 
         #region AsyncMethods
-
-        /// <summary>
-        /// Возвращает набор данных из БД для DataGrid (асинхронный)
-        /// </summary>
-        /// <param name="conString"> Строка подлкючения к БД </param>
-        /// <param name="query"> SQL-запрос </param>
-        /// <returns></returns>
-        private Task<DataSet> GetDataSetAsync(string conString, string query)
-        {
-            return Task.Run(() => GetDataSet(conString, query));
-        }
 
         /// <summary>
         /// Отправляет запрос в SQL и заполняет dataGrid с помощью асинхронного запроса
@@ -394,38 +310,20 @@ namespace AsnDataGrids.Lib.NewTasks
         /// <returns></returns>
         private async void FillDataGridAsync(string query)
         {
-            // Читаем из файла конфигурации имя базы данных
-            try
-            {
-                var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
-                using (StreamReader file = File.OpenText(path))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    var obj = (Config)serializer.Deserialize(file, typeof(Config));
-                    if (string.IsNullOrEmpty(obj.DbName)) return;
-                    _connectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=" + obj.DbName +
-                                        ";Integrated Security=True";
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show($"Не могу сделать запрос \n {e.Message}");
-                return;
-            }
-
 
             try
             {
+                _connectionString = $@"Data Source=.\SQLEXPRESS;Initial Catalog={_cfg.DbName};Integrated Security=True";
+
                 // Делаем запрос в БД и формируем ответ на DataGrid
-                var ds = await GetDataSetAsync(_connectionString, query);
+                var ds = await GridFunctional.GetDataSetAsync(_connectionString, query);
                 dataGridView1.DataSource = ds.Tables[0];
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Не могу сделать запрос \n{e.Message}");
+                MessageBox.Show($"Невозможно отравить запрос \n {e.Message}");
                 return;
             }
-
 
             // Оформление таблицы
             foreach (DataGridViewColumn column in dataGridView1.Columns)
@@ -469,34 +367,35 @@ namespace AsnDataGrids.Lib.NewTasks
         private void radioButtons_CheckedChanged(object sender, EventArgs e)
         {
             LockDateTimePickers();
-            var radioButton = sender as RadioButton;
-            if (radioButton != null && radioButton.Checked)
+
+            if (sender is RadioButton radioButton && radioButton.Checked)
             {
 
                 switch (radioButton.Name)
                 {
                     case "radioDay":
-                        FillDataGrid(SqlDay);
+                        FillDataGridAsync(SqlDay);
                         break;
                     case "radioWeek":
-                        FillDataGrid(SqlWeek);
+                        FillDataGridAsync(SqlWeek);
                         break;
                     case "radioMonth":
-                        FillDataGrid(SqlMonth);
+                        FillDataGridAsync(SqlMonth);
                         break;
                     case "radioYear":
-                        FillDataGrid(SqlYear);
+                        FillDataGridAsync(SqlYear);
 
                         break;
                     case "radioAll":
-                        FillDataGrid(SqlAll);
+                        FillDataGridAsync(SqlAll);
                         break;
 
                     case "radioCustom":
 
-                        UnlockDateTimePicker();
-                        var qeury = GetQuerySqlStringCustom(_customDateBegin, _customDateEnd);
-                        FillDataGrid(qeury);
+                        UnlockDateTimePickers();
+
+                        var qeury = GridFunctional.GetQuerySqlStringCustom(SqlAll, SqlSort, _tableName, _customDateBegin, _customDateEnd);
+                        FillDataGridAsync(qeury);
                         break;
 
                 }
@@ -506,22 +405,21 @@ namespace AsnDataGrids.Lib.NewTasks
         private void dateTimePickerBegin_ValueChanged(object sender, EventArgs e)
         {
             _customDateBegin = dateTimePickerBeginDate.Value.Date + dateTimePickerBeginTime.Value.TimeOfDay;
-            var qeury = GetQuerySqlStringCustom(_customDateBegin, _customDateEnd);
-            FillDataGrid(qeury);
+            var qeury = GridFunctional.GetQuerySqlStringCustom(SqlAll, SqlSort, _tableName, _customDateBegin, _customDateEnd);
+            FillDataGridAsync(qeury);
         }
 
         private void dateTimePickerEnd_ValueChanged(object sender, EventArgs e)
         {
             _customDateEnd = dateTimePickerEndDate.Value.Date + dateTimePickerEndTime.Value.TimeOfDay;
-            var qeury = GetQuerySqlStringCustom(_customDateBegin, _customDateEnd);
-            FillDataGrid(qeury);
+            var qeury = GridFunctional.GetQuerySqlStringCustom(SqlAll,SqlSort,_tableName,_customDateBegin, _customDateEnd);
+            FillDataGridAsync(qeury);
         }
 
         private void buttonExportExcel_Click(object sender, EventArgs e)
         {
             ExportToExcel();
         }
-
 
         //TODO: Разблокировать только при асинхронных запросах
         /// <summary>
@@ -531,11 +429,109 @@ namespace AsnDataGrids.Lib.NewTasks
         /// <param name="e"></param>
         private void timer1_Tick(object sender, EventArgs e)
         {
-            ReFillDataGrid(panelFilter.Controls);
+            if (_cfg != null) ReFillDataGrid(panelFilter.Controls);
         }
-        
-        #endregion
 
+
+        /// <summary>
+        /// Двойной клик по гриду
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void dataGridView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            // Двойной щелчок ЛКМ
+            if ((e.Button & MouseButtons.Left) != 0)
+            {
+                // Запоминаем номер 
+                int rowPosition = dataGridView1.HitTest(e.X, e.Y).RowIndex;
+
+                if (rowPosition >= 0)
+                {
+                    // Выделяем строку
+                    dataGridView1.Rows[rowPosition].Selected = true;
+
+                    _aisId = "";
+                    _sectId = "";
+
+                    for (int i = 0; i < dataGridView1.Rows[rowPosition].Cells.Count; i++)
+                    {
+
+                        if (dataGridView1.Columns[i].Name == "ИД задания АИС ТПС")
+                        {
+                            _aisId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
+                        }
+
+                        if (dataGridView1.Columns[i].Name == "ИД секции")
+                        {
+                            _sectId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
+                        }
+
+                    }
+
+                    // Открываем контекстное меню
+                    ContextMenuStrip conMenu = new ContextMenuStrip();
+
+                    // Создаем контекстное меню на основе данных из конфигурации
+                    try
+                    {
+                        var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
+
+                        _cfg.PostList?.ForEach((item) => conMenu.Items.Add(item).Name = item);
+
+                        // Отображаем контекстное меню
+                        conMenu.Show(dataGridView1, e.X, e.Y);
+
+                        // Выбор поста
+                        conMenu.ItemClicked += ConMenu_ItemClicked;
+                    }
+                    catch (Exception exc)
+                    {
+                        MessageBox.Show($"Неверный конфигурационный файл \n {exc.Message}");
+                    }
+
+                }
+            }
+        }
+
+        /// <summary>
+        /// Обработчик события выбора элемента контестного меню
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ConMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            var con = sender as ContextMenuStrip;
+            con?.Hide();
+
+            DialogResult res = MessageBox.Show("Скопировать в " + e.ClickedItem.Name, "Копирование",
+                MessageBoxButtons.OKCancel);
+
+            if (res == DialogResult.OK)
+            {
+
+                // Вычисляем номер поста
+                _postNumber = GridFunctional.GetPostNumber(e.ClickedItem.Name, _cfg);
+
+                // Вычисляем значения тегов
+                OpcExchangeTagValues values = new OpcExchangeTagValues()
+                {
+                    CmdStr = $"{_aisId};{_sectId};{_postNumber};{_cmdType}"
+                };
+
+                // Отправляем значения в OPC сервер
+                try
+                {
+                    GridFunctional.SendRequestToOpcUa(_cfg, values);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Невозможно сделать запрос в OPC-сервер \n {ex}");
+                }
+            }
+        }
+
+        #endregion
     }
 
 }

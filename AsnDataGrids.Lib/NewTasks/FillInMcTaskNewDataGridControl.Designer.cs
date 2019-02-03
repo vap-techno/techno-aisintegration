@@ -273,6 +273,7 @@
             this.dataGridView1.RowTemplate.Height = 24;
             this.dataGridView1.Size = new System.Drawing.Size(1596, 314);
             this.dataGridView1.TabIndex = 8;
+            this.dataGridView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseDoubleClick);
             // 
             // buttonRefresh
             // 
@@ -310,12 +311,12 @@
             this.panelToolBar.Size = new System.Drawing.Size(1089, 59);
             this.panelToolBar.TabIndex = 16;
             // 
-            // FillInDetailDataGridControl
+            // FillInMcTaskNewDataGridControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tableLayoutPanel1);
-            this.Name = "FillInDetailDataGridControl";
+            this.Name = "FillInMcTaskNewDataGridControl";
             this.Size = new System.Drawing.Size(1600, 388);
             this.panelFilter.ResumeLayout(false);
             this.panelFilter.PerformLayout();

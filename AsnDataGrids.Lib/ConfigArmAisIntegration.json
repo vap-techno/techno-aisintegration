@@ -1,3 +1,16 @@
 {
-  "DbName": "AisIntegrationDB"
+  "DbName": "AisIntegrationDB",
+  "PostList": [
+    "项耱 1.1",
+    "项耱 1.2",
+    "项耱 1.3",
+    "项耱 1.4",
+    "项耱 2.1",
+    "项耱 2.2",
+    "项耱 2.3",
+    "项耱 2.4"
+  ],
+  "OpcPath": "opcda://PROG01/OPC.SimaticHMI.CoRtHmiRTm.1",
+  "OpcExchangeTag": {
+    "CmdStr": "Task_External_cmdStr" }
 }

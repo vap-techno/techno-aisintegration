@@ -2,15 +2,14 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
-using System.Windows.Forms;
-using System.Text;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Windows.Forms;
 using Hylasoft.Opc.Da;
+using Newtonsoft.Json;
 
-
-namespace AsnDataGrids.Lib
+namespace Temp.WinGridWinCCExchange.App
 {
     public static class GridFunctional
     {
@@ -47,20 +46,20 @@ namespace AsnDataGrids.Lib
             var exc = new Exception();
 
             foreach (var p in pathList)
+            {
+                var path = Path.Combine(p, fileName);
+                try
                 {
-                    var path = Path.Combine(p, fileName);
-                    try
-                    {
-                        string json = File.ReadAllText(path, Encoding.GetEncoding(1251));
-                        return JsonConvert.DeserializeObject<Config>(json);
+                    string json = File.ReadAllText(path, Encoding.GetEncoding(1251));
+                    return JsonConvert.DeserializeObject<Config>(json);
                 }
-                    catch (Exception e)
-                    {
-                        exc = e;
-                        continue;
-                    }
-                    
+                catch (Exception e)
+                {
+                    exc = e;
+                    continue;
                 }
+
+            }
 
             throw exc;
         }
@@ -117,7 +116,7 @@ namespace AsnDataGrids.Lib
         /// <param name="sqlAll"> Основное тело запроса</param>
         /// <param name="sqlSort">Тело запроса сортировки</param>
         /// <returns></returns>
-        public static string GetQuerySqlStringCustom(string sqlAll, string sqlSort, string tableName,DateTime beginDateTime, DateTime endDateTime)
+        public static string GetQuerySqlStringCustom(string sqlAll, string sqlSort, string tableName, DateTime beginDateTime, DateTime endDateTime)
         {
 
             return sqlAll +
