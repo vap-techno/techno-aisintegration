@@ -440,58 +440,7 @@ namespace AsnDataGrids.Lib.NewTasks
         /// <param name="e"></param>
         private void dataGridView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            // Двойной щелчок ЛКМ
-            if ((e.Button & MouseButtons.Left) != 0)
-            {
-                // Запоминаем номер 
-                int rowPosition = dataGridView1.HitTest(e.X, e.Y).RowIndex;
 
-                if (rowPosition >= 0)
-                {
-                    // Выделяем строку
-                    dataGridView1.Rows[rowPosition].Selected = true;
-
-                    _aisId = "";
-                    _sectId = "";
-
-                    for (int i = 0; i < dataGridView1.Rows[rowPosition].Cells.Count; i++)
-                    {
-
-                        if (dataGridView1.Columns[i].Name == "ИД задания АИС ТПС")
-                        {
-                            _aisId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
-                        }
-
-                        if (dataGridView1.Columns[i].Name == "ИД секции")
-                        {
-                            _sectId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
-                        }
-
-                    }
-
-                    // Открываем контекстное меню
-                    ContextMenuStrip conMenu = new ContextMenuStrip();
-
-                    // Создаем контекстное меню на основе данных из конфигурации
-                    try
-                    {
-                        var path = Path.Combine(Environment.CurrentDirectory, ConfigFile);
-
-                        _cfg.PostList?.ForEach((item) => conMenu.Items.Add(item).Name = item);
-
-                        // Отображаем контекстное меню
-                        conMenu.Show(dataGridView1, e.X, e.Y);
-
-                        // Выбор поста
-                        conMenu.ItemClicked += ConMenu_ItemClicked;
-                    }
-                    catch (Exception exc)
-                    {
-                        MessageBox.Show($"Неверный конфигурационный файл \n {exc.Message}");
-                    }
-
-                }
-            }
         }
 
         /// <summary>
@@ -529,6 +478,7 @@ namespace AsnDataGrids.Lib.NewTasks
                     MessageBox.Show($"Невозможно сделать запрос в OPC-сервер \n {ex}");
                 }
             }
+
         }
 
         #endregion
