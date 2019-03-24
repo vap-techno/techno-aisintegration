@@ -108,7 +108,7 @@ namespace Techno.AsnOpcServer.App
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .WriteTo.ColoredConsole(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-                .WriteTo.File(path, rollingInterval: RollingInterval.Month)
+                .WriteTo.File(path, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 31)
                 .Enrich.WithExceptionDetails()
                 .CreateLogger(); 
 
