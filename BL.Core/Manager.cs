@@ -475,7 +475,7 @@ namespace BL.Core
                 // Ищем заявку по всем таблицам
                 var statusResponseLst = new List<StatusResponse>();
 
-                // Ищем и отменяем заявки по всем таблицам
+                // Ищем заявки по всем таблицам
                 foreach (var aisId in task.Ids)
                 {
                     StatusResponse resp = null;
