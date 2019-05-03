@@ -77,7 +77,8 @@ namespace BL.Core
             formatSettings = new JsonSerializerSettings
             {
                 DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                DateFormatString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFK"
+                DateFormatString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFK",
+                NullValueHandling = NullValueHandling.Ignore
             };
 
         }
