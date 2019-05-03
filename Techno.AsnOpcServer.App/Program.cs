@@ -84,11 +84,11 @@ namespace Techno.AsnOpcServer.App
             var cfg = Config(args, cfgPath);
 
             // Строка подключения к БД
-            string conString = $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=TestDapper;Data Source=.\SQLEXPRESS";
+            string conString = $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=AisIntegrationDb;Data Source=.\SQLEXPRESS";
             if (cfg != null)
             {
                 conString = cfg.Provider == "PostgreSQL"
-                    ? $@"User ID=postgres;Password=xxxxxx;Host=localhost;Port=5432;Database={cfg.DbName};Pooling=true;"
+                    ? $@"User ID=operator;Password=operator;Host=localhost;Port=5432;Database={cfg.DbName};Pooling=true;"
                     : $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog={cfg.DbName};Data Source=.\SQLEXPRESS";
             }
             #endregion
