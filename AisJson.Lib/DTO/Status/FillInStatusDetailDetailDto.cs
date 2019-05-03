@@ -57,49 +57,49 @@ namespace AisJson.Lib.DTO.Status
         /// [BFV1] Суммарное показание расходомера до налива базового топлива
         /// </summary>
         [JsonProperty(PropertyName = "BFV1", Required = Required.Default)]
-        public double Bfv1 { get; set; }
+        public double? Bfv1 { get; set; }
 
         /// <summary>
         /// [BFV2] Суммарное показание расходомера после налива базового топлива
         /// </summary>
         [JsonProperty(PropertyName = "BFV2", Required = Required.Default)]
-        public double Bfv2 { get; set; }
+        public double? Bfv2 { get; set; }
 
         /// <summary>
         /// [AV1] Суммарное показание расходомера до налива присадки 
         /// </summary>
         [JsonProperty(PropertyName = "AV1", Required = Required.Default)]
-        public double Av1 { get; set; }
+        public double? Av1 { get; set; }
 
         /// <summary>
         /// [AV2] Суммарное показание расходомера до налива присадки 
         /// </summary>
         [JsonProperty(PropertyName = "AV2", Required = Required.Default)]
-        public double Av2 { get; set; }
+        public double? Av2 { get; set; }
 
         /// <summary>
         /// [PVF] Объем готового/производимого продукта (факт)
         /// </summary>
         [JsonProperty(PropertyName = "PVF", Required = Required.Default)]
-        public double Pvf { get; set; }
+        public double? Pvf { get; set; }
 
         /// <summary>
         /// [BFVF] Объем базового топлива (факт)
         /// </summary>
         [JsonProperty(PropertyName = "BFVF", Required = Required.Default)]
-        public double Bfvf { get; set; }
+        public double? Bfvf { get; set; }
 
         /// <summary>
         /// Объем присадки (факт)
         /// </summary>
         [JsonProperty(PropertyName = "AFV", Required = Required.Default)]
-        public double Afv { get; set; }
+        public double? Afv { get; set; }
 
         /// <summary>
         /// [P] Избыточное давление по наливной линии с готовым/производимым
         /// </summary>
         [JsonProperty(PropertyName = "P", Required = Required.Default)]
-        public double P { get; set; }
+        public double? P { get; set; }
 
         /// <summary>
         /// [PMF] Масс готового/производимого продукта(факт)
@@ -111,13 +111,13 @@ namespace AisJson.Lib.DTO.Status
         /// [BFMF] Масса базового топлива (факт)
         /// </summary>
         [JsonProperty(PropertyName = "BFMF", Required = Required.Default)]
-        public double Bfmf { get; set; }
+        public double? Bfmf { get; set; }
 
         /// <summary>
         /// [AMF] Масса присадки (факт)
         /// </summary>
         [JsonProperty(PropertyName = "AMF", Required = Required.Default)]
-        public double Amf { get; set; }
+        public double? Amf { get; set; }
 
         /// <summary>
         /// [PTF] Температура готового/производимого продукта
@@ -129,13 +129,13 @@ namespace AisJson.Lib.DTO.Status
         /// [BFTF] Температура базового топлива (факт)
         /// </summary>
         [JsonProperty(PropertyName = "BFTF", Required = Required.Default)]
-        public double Bftf { get; set; }
+        public double? Bftf { get; set; }
 
         /// <summary>
         /// [ATF] Температура присадки (факт)
         /// </summary>
         [JsonProperty(PropertyName = "ATF", Required = Required.Default)]
-        public double Atf { get; set; }
+        public double? Atf { get; set; }
 
         /// <summary>
         /// [PRF] Плотность готового/производимого продукта (факт)
@@ -147,31 +147,31 @@ namespace AisJson.Lib.DTO.Status
         /// [BFRF] Плотность базового топлива (факт)
         /// </summary>
         [JsonProperty(PropertyName = "BFRF", Required = Required.Default)]
-        public double Bfrf { get; set; }
+        public double? Bfrf { get; set; }
 
         /// <summary>
         /// [ARF] Плотность присадки (факт)
         /// </summary>
         [JsonProperty(PropertyName = "ARF", Required = Required.Default)]
-        public double Arf { get; set; }
+        public double? Arf { get; set; }
 
         /// <summary>
         /// [TADJ] Температура приведения плотности (факт 15 или 20 С)
         /// </summary>
         [JsonProperty(PropertyName = "TAdj", Required = Required.Default)]
-        public double Tadj { get; set;}
+        public double? Tadj { get; set;}
 
         /// <summary>
         /// [PRAdjF] Приведенная плотность готового/производимого продукта (факт)
         /// </summary>
         [JsonProperty(PropertyName = "PRAdjF", Required = Required.Default)]
-        public double PrAdjF { get; set; }
+        public double? PrAdjF { get; set; }
 
         /// <summary>
         /// [BFAdjF] Приведенная плотность базового топлива (факт)
         /// </summary>
         [JsonProperty(PropertyName = "BfAdjF", Required = Required.Default)]
-        public double BfAdjf { get; set; }
+        public double? BfAdjf { get; set; }
 
         /// <summary>
         /// [DT1] Дата и время начала налива
@@ -189,13 +189,13 @@ namespace AisJson.Lib.DTO.Status
         /// [FSpd] Скорость налива
         /// </summary>
         [JsonProperty(PropertyName = "FSpd", Required = Required.Default)]
-        public double FSpd { get; set; }
+        public double? FSpd { get; set; }
 
         /// <summary>
         /// [tRest] Остаток времени налива
         /// </summary>
         [JsonProperty(PropertyName = "tRest", Required = Required.Default)]
-        public int TimeRest { get; set; }
+        public int? TimeRest { get; set; }
 
     }
 }

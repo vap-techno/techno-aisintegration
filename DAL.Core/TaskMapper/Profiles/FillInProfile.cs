@@ -34,6 +34,8 @@ namespace DAL.Core.TaskMapper.Profiles
 
             // FillInTask ===> FillInStatusDetail
             CreateMap<FillInDetail, FillInStatusDetailDetail>();
+
+
             CreateMap<FillInTask, FillInStatusDetail>()
                 .ForMember(d => d.Details, opt => opt.MapFrom(src => src.Details));
             
