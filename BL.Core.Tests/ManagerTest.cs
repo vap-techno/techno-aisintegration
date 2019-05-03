@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using AisJson.Lib.DTO.Data;
 using AisJson.Lib.DTO.Task;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -49,26 +50,22 @@ namespace BL.Core.Tests
 
 
         [TestMethod]
-        public void HandleStatusTask_1Request_ValidResponse()
+        public void HandleStatusTask_1Request_ResponseWithoutNullableFields()
         {
             // Arrange
-            var request = new StatusTaskDto()
-            {
-                Cmd = "STATUS",
-                Cid = GenerateCid(),
-                Data = new StatusDataDto()
-                {
-                    Ids = new List<string>() {"201810202054", "201810202055"}
-                }
+            string conString = $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=AisIntegrationDb;Data Source=.\SQLEXPRESS";
+            var taskMapper = new TaskMapper();
+            manager = new BL.Core.Manager(conString, taskMapper, Log.Logger);
 
-            };
-
-            
-
+            string fileName = "StatusValidCmd.json";
+            string path = Path.Combine(Environment.CurrentDirectory, @"..\..\", fileName);
 
             // Act
+            string json = File.ReadAllText(path);
+            string request = manager.HandleRequest(json);
 
             // Assert
+            Assert.IsFalse(request.Contains("TAdj"));
         }
     }
 }

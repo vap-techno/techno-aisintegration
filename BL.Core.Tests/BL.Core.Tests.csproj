@@ -68,6 +68,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="StatusValidCmd.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AisJson.Lib\AisJson.Lib.csproj">
