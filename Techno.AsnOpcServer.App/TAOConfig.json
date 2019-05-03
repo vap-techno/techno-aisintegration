@@ -1,6 +1,6 @@
 {
   "dev": {
-    "DbName": "TestDapper",
+    "DbName": "AisIntegrationDB",
     "Provider": "SQLEXPRESS",
     "LogFile": "Dev_TechnoAsnOpcDa.log"
   },
