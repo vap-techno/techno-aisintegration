@@ -100,6 +100,6 @@ namespace AisJson.Lib.DTO.Status
         /// [tRest] Остаток времени налива
         /// </summary>
         [JsonProperty(PropertyName = "tRest", Required = Required.Default)]
-        public TimeSpan TimeRest { get; set; }
+        public int TimeRest { get; set; }
     }
 }
