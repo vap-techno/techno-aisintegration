@@ -132,12 +132,12 @@ namespace DAL.Entity
         /// <summary>
         /// [PV1] Суммарное показание расходмера до налива готового проудкта
         /// </summary>
-        public double Pv1 { get; set; }
+        public double? Pv1 { get; set; }
 
         /// <summary>
         /// [PV2] Суммарное показание расходомера после налива готового продукта
         /// </summary>
-        public double Pv2 { get; set; }
+        public double? Pv2 { get; set; }
 
         /// <summary>
         /// [BFV1] Суммарное показание расходомера до налива базового топлива
@@ -182,7 +182,7 @@ namespace DAL.Entity
         /// <summary>
         /// [PMF] Масс готового/производимого продукта(факт)
         /// </summary>
-        public double Pmf { get; set; }
+        public double? Pmf { get; set; }
 
         /// <summary>
         /// [BFMF] Масса базового топлива (факт)
@@ -197,7 +197,7 @@ namespace DAL.Entity
         /// <summary>
         /// [PTF] Температура готового/производимого продукта
         /// </summary>
-        public double Ptf { get; set; }
+        public double? Ptf { get; set; }
 
         /// <summary>
         /// [BFTF] Температура базового топлива (факт)
@@ -212,7 +212,7 @@ namespace DAL.Entity
         /// <summary>
         /// [PRF] Плотность готового/производимого продукта (факт)
         /// </summary>
-        public double Prf { get; set; }
+        public double? Prf { get; set; }
 
         /// <summary>
         /// [BFRF] Плотность базового топлива (факт)

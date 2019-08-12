@@ -45,13 +45,13 @@ namespace AisJson.Lib.DTO.Status
         /// [PV1] Суммарное показание расходмера до налива готового проудкта
         /// </summary>
         [JsonProperty(PropertyName = "PV1", Required = Required.Default)]
-        public double Pv1 { get; set; }
+        public double? Pv1 { get; set; }
 
         /// <summary>
         /// [PV2] Суммарное показание расходомера после налива готового продукта
         /// </summary>
         [JsonProperty(PropertyName = "PV2", Required = Required.Default)]
-        public double Pv2 { get; set; }
+        public double? Pv2 { get; set; }
 
         /// <summary>
         /// [BFV1] Суммарное показание расходомера до налива базового топлива
@@ -105,7 +105,7 @@ namespace AisJson.Lib.DTO.Status
         /// [PMF] Масс готового/производимого продукта(факт)
         /// </summary>
         [JsonProperty(PropertyName = "PMF", Required = Required.Default)]
-        public double Pmf { get; set; }
+        public double? Pmf { get; set; }
 
         /// <summary>
         /// [BFMF] Масса базового топлива (факт)
@@ -141,7 +141,7 @@ namespace AisJson.Lib.DTO.Status
         /// [PRF] Плотность готового/производимого продукта (факт)
         /// </summary>
         [JsonProperty(PropertyName = "PRF", Required = Required.Default)]
-        public double Prf { get; set; }
+        public double? Prf { get; set; }
 
         /// <summary>
         /// [BFRF] Плотность базового топлива (факт)
