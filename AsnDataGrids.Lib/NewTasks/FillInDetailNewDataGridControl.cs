@@ -49,7 +49,7 @@ namespace AsnDataGrids.Lib.NewTasks
         private const string SqlAll = @"SELECT [FillInTask].[Tdt] as 'Дата'
       ,[FillInTask].[AisTaskId] as 'ИД задания АИС ТПС'
       ,[Sid] as 'ИД секции'
-      ,[FillInTask].[Dn] as 'ФИО водителия'
+      ,[FillInTask].[Dn] as 'ФИО водителя'
       ,[FillInTask].[Pn] as 'Гос. номер АЦ'
       ,[Sn] as 'Номер секции АЦ'
       ,[FillInDetail].[Pn] as 'Продукт'
@@ -335,7 +335,21 @@ namespace AsnDataGrids.Lib.NewTasks
                 column.Resizable = DataGridViewTriState.True;
 
                 //Блокируем поля сортировок, которые уходят Exception
-                if (column.Name.IndexOf("Отгружено", StringComparison.Ordinal) >= 0)
+                if (!(column.Name.IndexOf("TS(DB)", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("ID задания", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Дата", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("ИД задания", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("ИД секции", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Номер задания", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Гос. номер АЦ", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("ФИО водителя", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("ФИО оператора", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Продукт", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Код состояния поста налива", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Код статуса налива в секцию", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Номер поста(план)", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Номер поста(факт)", StringComparison.Ordinal) >= 0 ||
+                      column.Name.IndexOf("Номер секции АЦ", StringComparison.Ordinal) >= 0))
                 {
                     column.SortMode = DataGridViewColumnSortMode.NotSortable;
                 }
