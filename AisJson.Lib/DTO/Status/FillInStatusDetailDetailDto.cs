@@ -92,7 +92,7 @@ namespace AisJson.Lib.DTO.Status
         /// <summary>
         /// Объем присадки (факт)
         /// </summary>
-        [JsonProperty(PropertyName = "AFV", Required = Required.Default)]
+        [JsonProperty(PropertyName = "AVF", Required = Required.Default)]
         public double? Afv { get; set; }
 
         /// <summary>
