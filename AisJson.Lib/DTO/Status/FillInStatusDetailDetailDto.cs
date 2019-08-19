@@ -123,7 +123,7 @@ namespace AisJson.Lib.DTO.Status
         /// [PTF] Температура готового/производимого продукта
         /// </summary>
         [JsonProperty(PropertyName = "PTF", Required = Required.Default)]
-        public double Ptf { get; set; }
+        public double? Ptf { get; set; }
 
         /// <summary>
         /// [BFTF] Температура базового топлива (факт)
