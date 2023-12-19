@@ -317,7 +317,8 @@ namespace AsnDataGrids.Lib.NewTasks
 
             try
             {
-                _connectionString = $@"Data Source=.\SQLEXPRESS;Initial Catalog={_cfg.DbName};Integrated Security=True";
+
+                _connectionString = $@"Data Source=.\SQLEXPRESS;Persist Security Info=False;User ID=asn_user; Password=asn_user;Initial Catalog={_cfg.DbName}";
 
                 // Делаем запрос в БД и формируем ответ на DataGrid
                 var ds = await GridFunctional.GetDataSetAsync(_connectionString, query);

@@ -84,7 +84,7 @@ namespace Techno.AsnOpcServer.App
             var cfg = Config(args, cfgPath);
 
             // Строка подключения к БД
-            string conString = $@"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=AisIntegrationDb;Data Source=.\SQLEXPRESS";
+            string conString = $@"Data Source=.\\SQLEXPRESS;Persist Security Info=False;User ID=asn_user; Password=asn_user;Initial Catalog={cfg.DbName}";
             if (cfg != null)
             {
                 conString = cfg.Provider == "PostgreSQL"
