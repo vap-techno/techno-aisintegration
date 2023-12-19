@@ -21,6 +21,9 @@ namespace AsnDataGrids.Lib.NewTasks
         private string _sectId = ""; // Выбранный идентификатор секции
         private uint _postNumber = 0; // Выбранный номер поста
         private readonly int _cmdType = 1; // Налив в АЦ
+        private int _section = 0; // Выбранная секция
+        private string _tno = ""; // Выбранный номер задания
+        private string _pn = ""; // Выбранный номер цистерны
         private readonly string _tableName = "FillInTask"; // Таблица, из которой берем данные по временной выборки
 
         // Распложение файла конфигурации
@@ -47,7 +50,7 @@ namespace AsnDataGrids.Lib.NewTasks
 
         #region SQL-запрос
         private const string SqlAll = @"SELECT [FillInTask].[Tdt] as 'Дата'
-      ,[FillInTask].[AisTaskId] as 'ИД задания АИС ТПС'
+      ,[FillInTask].[AisTaskId] as 'ИД задания'
       ,[Sid] as 'ИД секции'
       ,[FillInTask].[Dn] as 'ФИО водителя'
       ,[FillInTask].[Pn] as 'Гос. номер АЦ'
@@ -473,7 +476,7 @@ namespace AsnDataGrids.Lib.NewTasks
 
                     for (int i = 0; i < dataGridView1.Rows[rowPosition].Cells.Count; i++)
                     {
-                        if (dataGridView1.Columns[i].Name == "ИД задания АИС ТПС")
+                        if (dataGridView1.Columns[i].Name == "ИД задания")
                         {
                             _aisId = (string) dataGridView1.Rows[rowPosition].Cells[i].Value;
                         }
@@ -482,6 +485,23 @@ namespace AsnDataGrids.Lib.NewTasks
                         {
                             _sectId = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
                         }
+
+                        if (dataGridView1.Columns[i].Name == "Номер секции АЦ")
+                        {
+                            _section = Convert.ToInt32(dataGridView1.Rows[rowPosition].Cells[i].Value);
+                        }
+
+                        if (dataGridView1.Columns[i].Name == "Номер задания")
+                        {
+                            _tno = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
+                        }
+
+                        if (dataGridView1.Columns[i].Name == "Гос. номер АЦ")
+                        {
+                            _pn = (string)dataGridView1.Rows[rowPosition].Cells[i].Value;
+                        }
+
+
                     }
                 }
 
@@ -517,7 +537,7 @@ namespace AsnDataGrids.Lib.NewTasks
                 // Вычисляем значения тегов
                 OpcExchangeTagValues values = new OpcExchangeTagValues()
                 {
-                    CmdStr = $"{_aisId};{_sectId};{_postNumber};{_cmdType}"
+                    CmdStr = $"{_aisId};{_sectId};{_postNumber};{_cmdType};{_section};{_tno};{_pn}"
                 };
 
                 // Отправляем значения в OPC сервер
@@ -539,3 +559,4 @@ namespace AsnDataGrids.Lib.NewTasks
     }
 
 }
+
